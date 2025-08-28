@@ -498,6 +498,77 @@ def join_team():
                     60*60, httponly=True, samesite="Lax")
     return resp, 200
 
+@app.route('/api/admin/remove_team/<team_id>', methods=['DELETE'])
+@edits_teams
+def remove_team_endpoint(team_id):
+    try:
+        team_uuid = uuid.UUID(team_id)
+        if team_uuid not in teams:
+            return jsonify({'message': 'Team not found'}), 404
+            
+        team_name = teams[team_uuid]['teamName']
+        remove_team(team_uuid)
+        logger.info('Admin removed team %s', team_name)
+        return jsonify({'message': f'Team {team_name} removed successfully'})
+    except ValueError:
+        return jsonify({'message': 'Invalid team ID'}), 400
+
+@app.route('/api/admin/modify_flags', methods=['POST'])
+@edits_teams
+def modify_team_flags():
+    data = request.get_json()
+    team_id = data.get('team_id')
+    flag_id = data.get('flag_id')
+    action = data.get('action')  # 'add' or 'remove'
+    
+    try:
+        team_uuid = uuid.UUID(team_id)
+        if team_uuid not in teams:
+            return jsonify({'message': 'Team not found'}), 404
+            
+        if flag_id not in flags:
+            return jsonify({'message': 'Flag not found'}), 404
+            
+        team = teams[team_uuid]
+        
+        if action == 'add':
+            # Check if flag already exists
+            if any(f['flagId'] == flag_id for f in team['flags']):
+                return jsonify({'message': 'Flag already submitted'}), 400
+            add_flag(team_uuid, flag_id)
+            logger.info('Admin added flag %s to team %s', flags[flag_id]['name'], team['teamName'])
+            
+        elif action == 'remove':
+            # Remove flag if it exists
+            team['flags'] = [f for f in team['flags'] if f['flagId'] != flag_id]
+            logger.info('Admin removed flag %s from team %s', flags[flag_id]['name'], team['teamName'])
+            
+        else:
+            return jsonify({'message': 'Invalid action'}), 400
+            
+        return jsonify({'message': 'Flag modified successfully'})
+        
+    except ValueError:
+        return jsonify({'message': 'Invalid team ID'}), 400
+    
+@app.route('/api/admin/teams', methods=['GET'])
+def get_teams():
+    teams_list = []
+    for team_id, team_data in teams.items():
+        teams_list.append({
+            'id': str(team_id),
+            'name': team_data['teamName'],
+            'members': team_data['members'],
+            'flags': [
+                {
+                    'flagId': f['flagId'],
+                    'name': flags[f['flagId']]['name'],
+                    'submissionTime': f['submissionTime']
+                } for f in team_data['flags']
+            ]
+        })
+    return jsonify(teams_list)
+    
 
 if __name__ == '__main__':
     app.run(debug=DEBUG, host="0.0.0.0")
