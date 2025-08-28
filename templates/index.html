@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}">
+    
+    <!-- FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap" rel="stylesheet">
+    <title>GIC CTF - Leaderboard</title>
+</head>
+<body>
+    <div class="content">
+        <div class="left">
+            <h3>LEADERBOARD</h3>
+            <div id="leaderboard-container">
+                <!-- Leaderboard entries will be dynamically added here -->
+            </div>
+        </div>
+        <div class="middle">
+            <span id="countdown">00:00:00</span>
+            <img src="{{ url_for('static', filename='images/GiC.png') }}" width="100">
+        </div>
+        <div class="right">
+            <h3>FIRST FLAGS</h3>
+            <div id="flag-status-container">
+                <!-- Challenge status entries will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/new.js') }}"></script>
+</body>
+</html>

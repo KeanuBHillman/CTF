@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GIC CTF - Create Team</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/create.css') }}">
+
+    <!-- FONT -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="create-container">
+    <h1>Create a Team</h1>
+
+    <div class="form-group">
+      <input type="text" id="teamname" placeholder="TEAM NAME" />
+    </div>
+
+    <div id="snumber-fields"></div>
+
+    
+    <div class="response-box" id="response-box" style="display: none;">
+        <span class="response-text" id="response-text"></span>
+    </div>
+    <button id="create-btn">CREATE</button>
+    <p class="alt-link">
+    or <a href="/join" class="join-link">JOIN</a> a team
+      </p>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/create.js') }}"></script>
+</body>
+</html>
