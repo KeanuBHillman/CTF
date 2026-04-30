@@ -1,156 +1,170 @@
 :root {
-  --gradient-thing: 
-  radial-gradient(
-    circle at 10% 10%,
-    rgba(255, 80, 80, 0.07) 0%,
-    rgba(255, 80, 80, 0) 20%
-  ),
-  radial-gradient(
-    circle at 80% 85%,
-    rgba(255, 80, 80, 0.07) 0%,
-    rgba(255, 80, 80, 0) 20%
-  );
-  --gic-ctf: rgba(255, 46, 46, 0.07);
-  --bg-color: #0D0D0D;
-  --flags-width: 1596px;
-  --modal-bg: rgba(0, 0, 0, 0.10);
-  --primary-color: #FF2E2E;
+    --gradient-thing:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(80, 255, 80, 0.07) 0%,
+            rgba(80, 255, 80, 0) 20%
+        ),
+        radial-gradient(
+            circle at 80% 85%,
+            rgba(80, 255, 80, 0.07) 0%,
+            rgba(80, 255, 80, 0) 20%
+        );
+    --gic-ctf: rgba(255, 46, 46, 0.07);
+    --bg-color: #0d0d0d;
+    --flags-width: 1596px;
+    --modal-bg: rgba(0, 0, 0, 0.1);
+    --primary-color: #00ff00;
 }
 
 body {
-  font-family: 'Kode Mono', monospace;
-  background-color: var(--bg-color);
-  color: #fff;
-  font-size: 1.6em;
-  height: 100vh;
-  overflow: hidden;
+    font-family: "Kode Mono", monospace;
+    background-color: var(--bg-color);
+    color: #fff;
+    font-size: 1.6em;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* Header styles */
 h3 {
-  text-align: left;
-  letter-spacing: 0.1em;
-  margin-top: 20px;
-  white-space: pre;
-  color: var(--primary-color);
+    text-align: left;
+    letter-spacing: 0.1em;
+    margin-top: 20px;
+    white-space: pre;
+    color: var(--primary-color);
 }
 
 /* Content container */
 .content {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: flex-start;
-  position: absolute;
-  width: 100vw;
-  height: 100vh;
-  top: 0;
-  left: 0;
-  background: var(--gradient-thing);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    background: var(--gradient-thing);
 }
 
 /* Left and Right divisions */
 .content .left,
 .content .right {
-  width: 40vw;
-  padding: 20px;
-  box-sizing: border-box;
-  height: 100%;
-  overflow-y: scroll;
-  scrollbar-width: none;
+    width: 40vw;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100%;
+    overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 .content .middle {
-  font-size: 60px;
-  font-weight: bold;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  gap: 30px;
-  color: var(--primary-color);
+    font-size: 60px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 30px;
+    color: var(--primary-color);
 }
 
 /* Leaderboard entry styles */
 .leaderboard__team-entry {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 30px;
-  gap: 20px;
-  position: relative;
-  width: 100%;
-  height: 80px;
-  background: #191919;
-  border-bottom: 1px solid var(--primary-color);
-  box-shadow: 2px 6px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  margin-bottom: 25px;
-  color: #fff; /* Ensure text is visible */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    gap: 20px;
+    position: relative;
+    width: 100%;
+    height: 80px;
+    background: #191919;
+    border-bottom: 1px solid var(--primary-color);
+    box-shadow: 2px 6px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 25px;
+    color: #fff; /* Ensure text is visible */
 }
 
 .leaderboard__team-info {
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
 }
 
 .leaderboard__team-info .leaderboard__team-position {
-  margin-right: 50px;
-  font-weight: bold;
+    margin-right: 50px;
+    font-weight: bold;
 }
-
 
 /* Basic styling for score */
 .points {
-  color: var(--primary-color);
-  font-weight: bold;
+    color: var(--primary-color);
+    font-weight: bold;
 }
 
 .flag-status__entry {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 30px;
-  gap: 20px;
-  position: relative;
-  width: 100%;
-  height: 80px;
-  background: #191919;
-  border-bottom: 1px solid var(--primary-color);
-  box-shadow: 2px 6px 4px rgba(0, 0, 0, 0.1);
-  color: white;
-  overflow: hidden;
-  margin-bottom: 25px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 30px;
+    gap: 20px;
+    position: relative;
+    width: 100%;
+    height: 80px;
+    background: #191919;
+    border-bottom: 1px solid var(--primary-color);
+    box-shadow: 2px 6px 4px rgba(0, 0, 0, 0.1);
+    color: white;
+    overflow: hidden;
+    margin-bottom: 25px;
 }
 
 /* Add more styles as needed for different elements inside .challenge-status */
 .flag-status__flag_name {
-  font-size: 0.9em;
+    font-size: 0.9em;
 }
 
 .flag-status__status {
-  font-weight: bold;
-  font-size: 0.9em;
-  text-align: right;
+    font-weight: bold;
+    font-size: 0.9em;
+    text-align: right;
 }
 
 /* Add transitions to elements that might have the .unsolved class */
 .unsolved,
 [data-animatable] {
-  transition: letter-spacing 0.5s ease, color 0.5s ease;
+    transition:
+        letter-spacing 0.5s ease,
+        color 0.5s ease;
 }
 
 /* The original class styling remains the same */
 .unsolved {
-  letter-spacing: 0.2em;
-  color: var(--primary-color);
+    letter-spacing: 0.2em;
+    color: var(--primary-color);
 }
 
 .background-thing {
-    background: radial-gradient(88.52% 88.52% at 10.83% 18.43%, rgba(0, 255, 0, 0.04) 0%, rgba(0, 0, 0, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */, radial-gradient(33.63% 56.3% at 87.19% 83.15%, rgba(0, 255, 0, 0.04) 0%, rgba(0, 0, 0, 0) 100%) /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */, #0D0D0D;
+    background:
+        radial-gradient(
+                88.52% 88.52% at 10.83% 18.43%,
+                rgba(0, 255, 0, 0.04) 0%,
+                rgba(0, 0, 0, 0) 100%
+            )
+            /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */,
+        radial-gradient(
+                33.63% 56.3% at 87.19% 83.15%,
+                rgba(0, 255, 0, 0.04) 0%,
+                rgba(0, 0, 0, 0) 100%
+            )
+            /* warning: gradient uses a rotation that is not supported by CSS and may not behave as expected */,
+        #0d0d0d;
 }

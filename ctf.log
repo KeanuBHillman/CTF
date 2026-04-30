@@ -1,1 +1,9 @@
 2025-08-28 14:53:54,294 - ctf_app - INFO - s5347898 submitted flag Russian Doll for team {'teamName': 'WOW', 'members': ['s5347898'], 'flags': [{'flagId': 8, 'submissionTime': 1756356834}]}
+2025-08-28 16:31:09,149 - ctf_app - INFO - Admin added flag Fortune Cookie to team WOW
+2025-08-28 16:31:35,816 - ctf_app - INFO - Admin added flag Gatekeeper.js to team WOW
+2025-08-28 16:31:45,709 - ctf_app - INFO - Admin added flag Spin the Wheel to team WOW
+2025-08-28 16:31:57,278 - ctf_app - INFO - Admin removed flag Spin the Wheel from team WOW
+2025-08-28 16:32:35,716 - ctf_app - INFO - Admin removed team WOW
+2025-08-28 16:33:12,593 - ctf_app - INFO - Admin removed team Coopers team
+2025-08-28 16:33:28,649 - ctf_app - INFO - Admin removed team wow2
+2026-03-17 14:42:47,365 - ctf_app - INFO - iasdh submitted flag Pixel Dust for team {'teamName': 'ISHDI', 'members': ['iasdh'], 'flags': [{'flagId': 1, 'submissionTime': 1773722567}]}

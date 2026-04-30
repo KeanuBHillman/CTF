@@ -1,19 +1,25 @@
-from datetime import datetime, timedelta
-from flask import Flask, request, jsonify, render_template, send_from_directory, make_response, redirect, url_for
-import time
-from flask_cors import CORS
-import pickle
 import functools
-import random
-import uuid
-from typing import List, TypedDict, Dict, Optional
-import os
-import yaml
-import re
-from werkzeug.middleware.proxy_fix import ProxyFix
 import logging
+import os
+import pickle
+import time
+import uuid
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
+from typing import Dict, List, Optional, TypedDict
 
+import yaml
+from flask import (
+    Flask,
+    jsonify,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+)
+from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 DEBUG = False
 
@@ -21,32 +27,29 @@ app = Flask(__name__)
 CORS(app)
 
 
-app.wsgi_app = ProxyFix(
-    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-)
-
-
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 
 CHALLENGES_DIR = os.path.join(app.static_folder or "static", "challenges")
 
 #  Setup logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('ctf_app')
+logger = logging.getLogger("ctf_app")
 logger.setLevel(logging.INFO)
 
 # Create handlers
-file_handler = RotatingFileHandler('ctf.log', maxBytes=10240, backupCount=10)
+file_handler = RotatingFileHandler("ctf.log", maxBytes=10240, backupCount=10)
 console_handler = logging.StreamHandler()
 
 # Create formatters and add it to handlers
-log_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(log_format)
 console_handler.setFormatter(log_format)
 
 # Add handlers to the logger
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
+
 
 class Flag(TypedDict):
     name: str
@@ -64,7 +67,7 @@ difficulty_order = {
     "medium": 2,
     "hard": 3,
     "very hard": 4,
-    "unknown": 999  # Put unknown difficulty at the end
+    "unknown": 999,  # Put unknown difficulty at the end
 }
 
 challenges = []
@@ -78,8 +81,10 @@ for folder in os.listdir(CHALLENGES_DIR):
         challenges.append(challenge)
 
 # Sort challenges by difficulty
-sorted_challenges = sorted(challenges, 
-    key=lambda x: difficulty_order.get(x.get("difficulty", "unknown").lower(), 999))
+sorted_challenges = sorted(
+    challenges,
+    key=lambda x: difficulty_order.get(x.get("difficulty", "unknown").lower(), 999),
+)
 
 # Populate flags dict with sorted challenges
 for index, challenge in enumerate(sorted_challenges):
@@ -103,29 +108,40 @@ class Team(TypedDict):
     flags: List[FlagSubmission]
 
 
+countdown_end = datetime(2027, 8, 7, 19, 48, 35)
+
+
 # Load teams from pickle file if it exists, otherwise initialize
-
-countdown_end = datetime(2025, 8, 7, 19, 48, 35)
-
-
 def load_teams() -> Dict[uuid.UUID, Team]:
     if DEBUG:
         return {
             uuid.uuid4(): {"teamName": "Germany", "members": ["s5347898"], "flags": []},
-            uuid.uuid4(): {"teamName": "Australia", "members": ["s5347898"], "flags": []},
+            uuid.uuid4(): {
+                "teamName": "Australia",
+                "members": ["s5347898"],
+                "flags": [],
+            },
             uuid.uuid4(): {"teamName": "America", "members": ["s5347898"], "flags": []},
             uuid.uuid4(): {"teamName": "Spain", "members": ["s5347898"], "flags": []},
             uuid.uuid4(): {"teamName": "Moscow", "members": ["s5347898"], "flags": []},
             uuid.uuid4(): {"teamName": "Mexico", "members": ["s5347898"], "flags": []},
             uuid.uuid4(): {"teamName": "Canada", "members": ["s5347898"], "flags": []},
-            uuid.uuid4(): {"teamName": "New Zealand", "members": ["s5347898"], "flags": []},
-            uuid.uuid4(): {"teamName": "United Kingdom", "members": ["s5347898"], "flags": []},
+            uuid.uuid4(): {
+                "teamName": "New Zealand",
+                "members": ["s5347898"],
+                "flags": [],
+            },
+            uuid.uuid4(): {
+                "teamName": "United Kingdom",
+                "members": ["s5347898"],
+                "flags": [],
+            },
             uuid.uuid4(): {"teamName": "Wales", "members": ["s5347898"], "flags": []},
             uuid.uuid4(): {"teamName": "Ireland", "members": ["s5347898"], "flags": []},
         }
     else:
         try:
-            with open('teams.pickle', 'rb') as f:
+            with open("teams.pickle", "rb") as f:
                 return pickle.load(f)
         except FileNotFoundError:
             return {}
@@ -133,7 +149,7 @@ def load_teams() -> Dict[uuid.UUID, Team]:
 
 def save_teams(teams: Dict[uuid.UUID, Team]) -> None:
     if not DEBUG:
-        with open('teams.pickle', 'wb') as f:
+        with open("teams.pickle", "wb") as f:
             pickle.dump(teams, f)
 
 
@@ -146,17 +162,14 @@ def edits_teams(func):
         result = func(*args, **kwargs)
         save_teams(teams)
         return result
+
     return wrapper
 
 
 @edits_teams
 def add_team(teamName: str, members: List[str]) -> uuid.UUID:
     teamUuid = uuid.uuid4()
-    teams[teamUuid] = {
-        "teamName": teamName,
-        "members": members,
-        "flags": []
-    }
+    teams[teamUuid] = {"teamName": teamName, "members": members, "flags": []}
     return teamUuid
 
 
@@ -194,9 +207,8 @@ def validate_flag(flagId: int, flagValue: str) -> bool:
 
 
 def calculate_first_submissions():
-    firstSubmissions: Dict[int, Optional[str]] = {
-        flagId: None for flagId in flags}
-    submissionTimes = {flagId: float('inf') for flagId in flags}
+    firstSubmissions: Dict[int, Optional[str]] = {flagId: None for flagId in flags}
+    submissionTimes = {flagId: float("inf") for flagId in flags}
 
     for team in teams.values():
         teamName = team["teamName"]
@@ -209,10 +221,7 @@ def calculate_first_submissions():
                 firstSubmissions[flagId] = teamName
 
     result = {
-        flag_id: {
-            "name": flags[flag_id]["name"],
-            "team": firstSubmissions[flag_id]
-        }
+        flag_id: {"name": flags[flag_id]["name"], "team": firstSubmissions[flag_id]}
         for flag_id in flags
     }
     return result
@@ -227,8 +236,7 @@ def calculate_leaderboard():
             flagId = flag["flagId"]
             totalPoints += flags[flagId]["points"]
 
-        leaderboard.append(
-            {"teamName": team["teamName"], "points": totalPoints})
+        leaderboard.append({"teamName": team["teamName"], "points": totalPoints})
 
     # Sort by points in descending order
     leaderboard.sort(key=lambda x: x["points"], reverse=True)
@@ -272,11 +280,12 @@ def api_requires_team_member(f):
             return jsonify({"message": "sNumber not in team"}), 404
 
         # Add team_id to kwargs for route function
-        kwargs['team_id'] = team_id
-        kwargs['sNumber'] = snumber
+        kwargs["team_id"] = team_id
+        kwargs["sNumber"] = snumber
         return f(*args, **kwargs)
 
     return decorated_function
+
 
 def requires_team_member(f):
     @functools.wraps(f)
@@ -303,98 +312,99 @@ def requires_team_member(f):
                 raise ValueError("sNumber not in team")
 
             # Add team_id to kwargs for route function
-            kwargs['team_id'] = team_id
-            kwargs['sNumber'] = snumber
+            kwargs["team_id"] = team_id
+            kwargs["sNumber"] = snumber
             return f(*args, **kwargs)
 
         except Exception as e:
             print(f"Error in decorator: {str(e)}")
-            return redirect('/')
+            return redirect("/")
 
     return decorated_function
 
-@app.route('/submit_flag', methods=['POST'])
+
+@app.route("/submit_flag", methods=["POST"])
 @api_requires_team_member
 def submit_flag(team_id, sNumber):
     # Check if countdown has expired
     if countdown_end and datetime.now() > countdown_end:
-        return jsonify({'message': 'Competition has ended'}), 403
-    
+        return jsonify({"message": "Competition has ended"}), 403
+
     data = request.get_json()
-    flagValue = data.get('flagValue')
-    
+    flagValue = data.get("flagValue")
+
     if not flagValue:
-        return jsonify({'message': 'Missing flag'}), 400
+        return jsonify({"message": "Missing flag"}), 400
 
     flagId = lookup_flag(flagValue)
-    if flagId == None:
-        return jsonify({'message': 'Invalid flag'}), 400
+    if flagId is None:
+        return jsonify({"message": "Invalid flag"}), 400
 
     team = teams[team_id]
     for submission in team["flags"]:
         if submission["flagId"] == flagId:
-            return jsonify({'message': 'Already submitted'}), 409
+            return jsonify({"message": "Already submitted"}), 409
 
     add_flag(team_id, flagId)
     teamName = teams[team_id]
 
-    flagName = flags[flagId]['name']
-    logger.info('%s submitted flag %s for team %s', sNumber, flagName, teamName)
-    return jsonify({'message': f"{flagName} submitted"}), 200
+    flagName = flags[flagId]["name"]
+    logger.info("%s submitted flag %s for team %s", sNumber, flagName, teamName)
+    return jsonify({"message": f"{flagName} submitted"}), 200
 
 
-@app.route('/api/flag-status', methods=['GET'])
+@app.route("/api/flag-status", methods=["GET"])
 def get_first_submissions():
     first_submissions = calculate_first_submissions()
     return jsonify(first_submissions), 200
 
 
-@app.route('/api/leaderboard', methods=['GET'])
+@app.route("/api/leaderboard", methods=["GET"])
 def get_leaderboard_data():
     leaderboard = calculate_leaderboard()
     return jsonify(leaderboard)
 
 
-@app.route('/api/end-time')
+@app.route("/api/end-time")
 def get_epoch():
     global countdown_end
-    return jsonify({
-        'epoch': int(countdown_end.timestamp())
-    })
+    return jsonify({"epoch": int(countdown_end.timestamp())})
 
-@app.route('/api/update-countdown', methods=['GET'])
+
+@app.route("/api/update-countdown", methods=["GET"])
 def update_countdown():
     global countdown_end
     try:
-        minutes = request.args.get('minutes')
+        minutes = request.args.get("minutes")
         if minutes is None:
-            return jsonify({'error': 'Missing minutes parameter'}), 400
-            
+            return jsonify({"error": "Missing minutes parameter"}), 400
+
         countdown_end = datetime.now() + timedelta(minutes=int(minutes))
-        return jsonify({'success': True})
+        return jsonify({"success": True})
     except ValueError:
-        return jsonify({'error': 'Invalid minutes value'}), 400
+        return jsonify({"error": "Invalid minutes value"}), 400
 
 
-@app.route('/leaderboard')
+@app.route("/leaderboard")
 def route_index():
-    return render_template('index.html')
+    return render_template("index.html")
 
 
-@app.route('/join')
+@app.route("/join")
 def route_join():
-    return render_template('join.html')
+    return render_template("join.html")
 
 
-@app.route('/')
+@app.route("/")
 def create_join():
-    return render_template('create.html')
+    return render_template("create.html")
 
 
-@app.route('/ctf')
+@app.route("/ctf")
 @requires_team_member
 def route_submissions(team_id, sNumber):
-    return render_template('submissions.html')
+    return render_template("submissions.html")
+
 
 @app.route("/api/challenges")
 @api_requires_team_member
@@ -430,8 +440,8 @@ def challenge_files(challenge, filename):
     return send_from_directory(
         folder_path,
         filename,
-        as_attachment=True,          # force download
-        download_name=new_name       # rename file for client
+        as_attachment=True,  # force download
+        download_name=new_name,  # rename file for client
     )
 
 
@@ -455,14 +465,20 @@ def api_create_team():
     team_id = add_team(teamname, snumbers)
 
     # Build response and set cookies
-    resp = make_response(jsonify({
-        "message": f"Team {teamname} created successfully!",
-        "teamId": str(team_id)
-    }))
-    resp.set_cookie("teamName", teamname, max_age=1*24 *
-                    60*60, httponly=False, samesite="Lax")
+    resp = make_response(
+        jsonify(
+            {
+                "message": f"Team {teamname} created successfully!",
+                "teamId": str(team_id),
+            }
+        )
+    )
     resp.set_cookie(
-        "sNumber", snumbers[0], max_age=1*24*60*60, httponly=True, samesite="Lax")
+        "teamName", teamname, max_age=1 * 24 * 60 * 60, httponly=False, samesite="Lax"
+    )
+    resp.set_cookie(
+        "sNumber", snumbers[0], max_age=1 * 24 * 60 * 60, httponly=True, samesite="Lax"
+    )
     return resp, 200
 
 
@@ -488,87 +504,104 @@ def join_team():
         return jsonify({"message": "sNumber not in team"}), 404
 
     # Build response and set cookies
-    resp = make_response(jsonify({
-        "message": f"Joined team {teamname} successfully!",
-        "teamId": str(team_id)
-    }))
-    resp.set_cookie("teamName", teamname, max_age=1*24 *
-                    60*60, httponly=False, samesite="Lax")
-    resp.set_cookie("sNumber", snumber, max_age=1*24 *
-                    60*60, httponly=True, samesite="Lax")
+    resp = make_response(
+        jsonify(
+            {"message": f"Joined team {teamname} successfully!", "teamId": str(team_id)}
+        )
+    )
+    resp.set_cookie(
+        "teamName", teamname, max_age=1 * 24 * 60 * 60, httponly=False, samesite="Lax"
+    )
+    resp.set_cookie(
+        "sNumber", snumber, max_age=1 * 24 * 60 * 60, httponly=True, samesite="Lax"
+    )
     return resp, 200
 
-@app.route('/api/admin/remove_team/<team_id>', methods=['DELETE'])
+
+@app.route("/api/admin/remove_team/<team_id>", methods=["DELETE"])
 @edits_teams
 def remove_team_endpoint(team_id):
     try:
         team_uuid = uuid.UUID(team_id)
         if team_uuid not in teams:
-            return jsonify({'message': 'Team not found'}), 404
-            
-        team_name = teams[team_uuid]['teamName']
-        remove_team(team_uuid)
-        logger.info('Admin removed team %s', team_name)
-        return jsonify({'message': f'Team {team_name} removed successfully'})
-    except ValueError:
-        return jsonify({'message': 'Invalid team ID'}), 400
+            return jsonify({"message": "Team not found"}), 404
 
-@app.route('/api/admin/modify_flags', methods=['POST'])
+        team_name = teams[team_uuid]["teamName"]
+        remove_team(team_uuid)
+        logger.info("Admin removed team %s", team_name)
+        return jsonify({"message": f"Team {team_name} removed successfully"})
+    except ValueError:
+        return jsonify({"message": "Invalid team ID"}), 400
+
+
+@app.route("/api/admin/modify_flags", methods=["POST"])
 @edits_teams
 def modify_team_flags():
     data = request.get_json()
-    team_id = data.get('team_id')
-    flag_id = data.get('flag_id')
-    action = data.get('action')  # 'add' or 'remove'
-    
+    team_id = data.get("team_id")
+    flag_id = data.get("flag_id")
+    action = data.get("action")  # 'add' or 'remove'
+
     try:
         team_uuid = uuid.UUID(team_id)
         if team_uuid not in teams:
-            return jsonify({'message': 'Team not found'}), 404
-            
+            return jsonify({"message": "Team not found"}), 404
+
         if flag_id not in flags:
-            return jsonify({'message': 'Flag not found'}), 404
-            
+            return jsonify({"message": "Flag not found"}), 404
+
         team = teams[team_uuid]
-        
-        if action == 'add':
+
+        if action == "add":
             # Check if flag already exists
-            if any(f['flagId'] == flag_id for f in team['flags']):
-                return jsonify({'message': 'Flag already submitted'}), 400
+            if any(f["flagId"] == flag_id for f in team["flags"]):
+                return jsonify({"message": "Flag already submitted"}), 400
             add_flag(team_uuid, flag_id)
-            logger.info('Admin added flag %s to team %s', flags[flag_id]['name'], team['teamName'])
-            
-        elif action == 'remove':
+            logger.info(
+                "Admin added flag %s to team %s",
+                flags[flag_id]["name"],
+                team["teamName"],
+            )
+
+        elif action == "remove":
             # Remove flag if it exists
-            team['flags'] = [f for f in team['flags'] if f['flagId'] != flag_id]
-            logger.info('Admin removed flag %s from team %s', flags[flag_id]['name'], team['teamName'])
-            
+            team["flags"] = [f for f in team["flags"] if f["flagId"] != flag_id]
+            logger.info(
+                "Admin removed flag %s from team %s",
+                flags[flag_id]["name"],
+                team["teamName"],
+            )
+
         else:
-            return jsonify({'message': 'Invalid action'}), 400
-            
-        return jsonify({'message': 'Flag modified successfully'})
-        
+            return jsonify({"message": "Invalid action"}), 400
+
+        return jsonify({"message": "Flag modified successfully"})
+
     except ValueError:
-        return jsonify({'message': 'Invalid team ID'}), 400
-    
-@app.route('/api/admin/teams', methods=['GET'])
+        return jsonify({"message": "Invalid team ID"}), 400
+
+
+@app.route("/api/admin/teams", methods=["GET"])
 def get_teams():
     teams_list = []
     for team_id, team_data in teams.items():
-        teams_list.append({
-            'id': str(team_id),
-            'name': team_data['teamName'],
-            'members': team_data['members'],
-            'flags': [
-                {
-                    'flagId': f['flagId'],
-                    'name': flags[f['flagId']]['name'],
-                    'submissionTime': f['submissionTime']
-                } for f in team_data['flags']
-            ]
-        })
+        teams_list.append(
+            {
+                "id": str(team_id),
+                "name": team_data["teamName"],
+                "members": team_data["members"],
+                "flags": [
+                    {
+                        "flagId": f["flagId"],
+                        "name": flags[f["flagId"]]["name"],
+                        "submissionTime": f["submissionTime"],
+                    }
+                    for f in team_data["flags"]
+                ],
+            }
+        )
     return jsonify(teams_list)
-    
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(debug=DEBUG, host="0.0.0.0")
