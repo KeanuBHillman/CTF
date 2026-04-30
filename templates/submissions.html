@@ -1,71 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIC CTF - Challenges</title>
-    <!-- FONT -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/submissions.css') }}">
-</head>
-<body>
-    <div id="app">
-        <div class="flags-container">
-            <h1 id="flags-title">YOUR FLAGS</h1>
-            <div id="challenge-list">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GIC CTF - Challenges</title>
+        <!-- FONT -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/static/css/submissions.css" />
+    </head>
+    <body>
+        <div id="app">
+            <div class="flags-container">
+                <h1 id="flags-title">YOUR FLAGS</h1>
+                <div id="challenge-list"></div>
+            </div>
+            <div id="modal" class="modal">
+                <div class="modal-wrapper">
+                    <!-- Left side: description -->
+                    <div class="modal-content">
+                        <div class="modal-title">
+                            <div class="modal-title-left">
+                                <div class="challenge-title" id="modal-title">
+                                    Challenge Name
+                                </div>
+                                <div class="challenge-points" id="modal-points">
+                                    4 points
+                                </div>
+                            </div>
+                            <div
+                                class="challenge-difficulty"
+                                id="modal-difficulty"
+                            >
+                                MEDIUM
+                            </div>
+                        </div>
+                        <div
+                            id="modal-description"
+                            class="modal-description"
+                        ></div>
+                        <div class="modal-footer">
+                            <button class="nav-btn" id="modal-up">↑</button>
+                            <button class="nav-btn" id="modal-down">↓</button>
+                            <button class="close-btn" id="modal-close">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Right side: submission -->
+                    <div class="modal-submission">
+                        <h2>FLAG SUBMISSION</h2>
+                        <input type="text" id="flag-input" placeholder="FLAG" />
+                        <div
+                            class="response-box"
+                            id="response-box"
+                            style="display: none"
+                        >
+                            <span
+                                class="response-text"
+                                id="response-text"
+                            ></span>
+                        </div>
+                        <button id="submit-flag">→</button>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div id="modal" class="modal">
-            <div class="modal-wrapper">
-                <!-- Left side: description -->
-                <div class="modal-content">
-                <div class="modal-title">
-                    <div class="modal-title-left">
-                        <div class="challenge-title" id="modal-title">Challenge Name</div>
-                        <div class="challenge-points" id="modal-points">4 points</div>
-                    </div>
-                    <div class="challenge-difficulty" id="modal-difficulty">MEDIUM</div>
-                </div>
-                <div id="modal-description" class="modal-description"></div>
-                <div class="modal-footer">
-                    <button class="nav-btn" id="modal-up">↑</button>
-                    <button class="nav-btn" id="modal-down">↓</button>
-                    <button class="close-btn" id="modal-close">Close</button>
-                </div>
-                </div>
-
-                <!-- Right side: submission -->
-                <div class="modal-submission">
-                    <h2>FLAG SUBMISSION</h2>
-                    <input type="text" id="flag-input" placeholder="FLAG" />
-                    <div class="response-box" id="response-box" style="display: none;">
-                    <span class="response-text" id="response-text"></span>
-                    </div>
-                    <button id="submit-flag">→</button>
-                </div>
-            </div>
-            </div>
-    </div>
-
-    <script src="{{ url_for('static', filename='js/submissions.js') }}"></script>
-</body>
-<script>
-  // Helper to read cookies
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-  }
-
-  // Get teamName from cookie
-  const teamName = getCookie("teamName");
-
-  if (teamName) {
-    const titleElement = document.getElementById("flags-title");
-    titleElement.textContent = teamName.toUpperCase() + "'S FLAGS";
-  }
-</script>
+        <script src="/static/js/submissions.js"></script>
+    </body>
+    <script>
+        // Helper to read cookies
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+        // Get teamName from cookie
+        const teamName = getCookie("teamName");
+        if (teamName) {
+            const titleElement = document.getElementById("flags-title");
+            titleElement.textContent = teamName.toUpperCase() + "'S FLAGS";
+        }
+    </script>
 </html>

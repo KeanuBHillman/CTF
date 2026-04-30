@@ -1,7 +1,6 @@
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
 const randEnd = 30;
 
-
 document.addEventListener("DOMContentLoaded", () => {
   const challengeListDiv = document.getElementById("challenge-list");
   const modalDiv = document.getElementById("modal");
@@ -37,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
             newCharacters.push(i < newText.length ? newText[i] : "");
           } else if (iterations > i) {
             newCharacters.push(
-              letters[Math.floor(Math.random() * letters.length)]
+              letters[Math.floor(Math.random() * letters.length)],
             );
           } else {
             newCharacters.push(i < originalText.length ? originalText[i] : "");
@@ -63,9 +62,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const challengeData = challenges[index];
 
     document.getElementById("modal-title").textContent = challengeData.title;
-    document.getElementById(
-      "modal-points"
-    ).textContent = `${challengeData.points} points`;
+    document.getElementById("modal-points").textContent =
+      `${challengeData.points} points`;
 
     const difficultyEl = document.getElementById("modal-difficulty");
     difficultyEl.textContent = challengeData.difficulty;
@@ -131,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
               challenge.solved ? "Solved" : "Unsolved"
             }</div>
           </div>
-        `
+        `,
         )
         .join("");
 
@@ -180,10 +178,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      fetch("/submit_flag", {
+      fetch("/api/challenges/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ flagValue }),
+        body: JSON.stringify({
+          challenge_id: challenges[currentIndex].id,
+          flag: flagValue,
+        }),
       })
         .then(async (res) => {
           const result = await res.json();
@@ -209,12 +210,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function updateData() {
     const challengeResponse = await fetch("/api/challenges");
-    const challengeData = await challengeResponse.json()
+    const challengeData = await challengeResponse.json();
     for (let challengeId in challengeData) {
-      element = document.getElementById(`challenge-status-challenge-${challengeId}`)
-      const state = challengeData[challengeId].solved ? "Solved" : "Unsolved"
+      element = document.getElementById(
+        `challenge-status-challenge-${challengeId}`,
+      );
+      const state = challengeData[challengeId].solved ? "Solved" : "Unsolved";
       if (element.innerHTML !== state) {
-        animateTextChange(element, state)
+        animateTextChange(element, state);
       }
     }
   }

@@ -21,6 +21,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import CtfDB
 
 from .routers import admin, challenges, countdown, leaderboard, teams
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -60,6 +64,24 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/")
+def page_create():
+    return FileResponse("templates/create.html")
+
+@app.get("/join")
+def page_join():
+    return FileResponse("templates/join.html")
+
+@app.get("/leaderboard")
+def page_leaderboard():
+    return FileResponse("templates/index.html")
+
+@app.get("/ctf")
+def page_ctf():
+    return FileResponse("templates/submissions.html")
 
 app.include_router(challenges.router)
 app.include_router(teams.router)

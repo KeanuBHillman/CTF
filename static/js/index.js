@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   const leaderboardContainer = document.getElementById("leaderboard-container");
   const challengeStatusContainer = document.getElementById(
-    "flag-status-container"
+    "flag-status-container",
   );
   let previousLeaderboardData = null;
   let previousChallengeStatusData = null;
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .toString()
       .padStart(
         2,
-        "0"
+        "0",
       )}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
 
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const solvingTeam = challengeStatusData[challengeName];
         const challengeElement = createChallengeStatusEntry(
           challengeName,
-          solvingTeam
+          solvingTeam,
         );
         challengeStatusContainer.appendChild(challengeElement);
       }
@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", function () {
             newCharacters.push(i < newText.length ? newText[i] : "");
           } else if (iterations > i) {
             newCharacters.push(
-              letters[Math.floor(Math.random() * letters.length)]
+              letters[Math.floor(Math.random() * letters.length)],
             );
           } else {
             newCharacters.push(i < originalText.length ? originalText[i] : "");
@@ -242,10 +242,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const leaderboardResponse = await fetch("/api/leaderboard");
       const newLeaderboardData = await leaderboardResponse.json();
 
-      const flagStatusResponse = await fetch("/api/flag-status");
+      const flagStatusResponse = await fetch("/api/leaderboard/first-blood");
       const newFlagStatusData = await flagStatusResponse.json();
 
-      const epochResponse = await fetch("/api/end-time");
+      const epochResponse = await fetch("/api/countdown/");
       const epochData = await epochResponse.json();
 
       // Update epoch and restart countdown if it's different
@@ -266,22 +266,22 @@ document.addEventListener("DOMContentLoaded", function () {
         populateLeaderboard(newLeaderboardData);
         populateChallengeStatus(newFlagStatusData);
         previousLeaderboardData = JSON.parse(
-          JSON.stringify(newLeaderboardData)
+          JSON.stringify(newLeaderboardData),
         );
         previousChallengeStatusData = JSON.parse(
-          JSON.stringify(newFlagStatusData)
+          JSON.stringify(newFlagStatusData),
         );
         return;
       }
 
       const { nameChanges, scoreChanges } = getPositionChanges(
         previousLeaderboardData,
-        newLeaderboardData
+        newLeaderboardData,
       );
 
       const challengeChanges = getChallengeStatusChanges(
         previousChallengeStatusData,
-        newFlagStatusData
+        newFlagStatusData,
       );
 
       const effectPromises = [];
@@ -302,7 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       challengeChanges.forEach((change) => {
         const statusElement = challengeToStatusElement.get(
-          change.challengeName
+          change.challengeName,
         );
         if (statusElement) {
           effectPromises.push(triggerTextEffect(statusElement, change.newText));
@@ -322,7 +322,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       previousLeaderboardData = JSON.parse(JSON.stringify(newLeaderboardData));
       previousChallengeStatusData = JSON.parse(
-        JSON.stringify(newFlagStatusData)
+        JSON.stringify(newFlagStatusData),
       );
     } catch (error) {
       console.error("Error fetching data:", error);

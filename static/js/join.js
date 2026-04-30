@@ -4,15 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const joinBtn = document.getElementById("join-btn");
   const responseBox = document.getElementById("response-box");
   const responseText = document.getElementById("response-text");
-
   joinBtn.addEventListener("click", () => {
     const snumber = snumberInput.value.trim();
     const teamname = teamnameInput.value.trim();
-
     // Reset response box
     responseBox.style.display = "none";
     responseBox.className = "response-box";
-
     // Validation
     if (!snumber || !teamname) {
       responseText.textContent = "Missing fields";
@@ -20,21 +17,18 @@ document.addEventListener("DOMContentLoaded", () => {
       responseBox.style.display = "flex";
       return;
     }
-
     // Send request
-    fetch("/api/join_team", {
+    fetch("/api/teams/join", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ snumber, teamname }),
+      body: JSON.stringify({ team_name: teamname, member_name: snumber }), // changed: was { snumber, teamname }
     })
       .then(async (res) => {
         const result = await res.json();
         responseText.textContent = result.message || "No response message";
-
         if (res.status === 200) {
           responseBox.classList.add("response-success");
           responseBox.style.display = "flex";
-
           // ✅ Redirect after short delay so user sees success
           setTimeout(() => {
             window.location.href = "/ctf";

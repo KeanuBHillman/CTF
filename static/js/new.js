@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .toString()
       .padStart(
         2,
-        "0"
+        "0",
       )}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }
 
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
     teamInfoDiv.appendChild(positionSpan);
 
     const teamNameSpan = document.createElement("span");
-    teamNameSpan.textContent = entryData.team;
+    teamNameSpan.textContent = entryData.team_name; // changed: was entryData.team
     teamNameSpan.classList.add("leaderboard__team-name");
     teamInfoDiv.appendChild(teamNameSpan);
     leaderboardIndexToNameElement.set(index, teamNameSpan);
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const pointsDiv = document.createElement("div");
     pointsDiv.classList.add("points");
     const pointsSpan = document.createElement("span");
-    pointsSpan.textContent = entryData.score;
+    pointsSpan.textContent = entryData.points; // changed: was entryData.score
     pointsSpan.classList.add("points-value");
     pointsDiv.appendChild(pointsSpan);
     entryDiv.appendChild(pointsDiv);
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
             newCharacters.push(i < newText.length ? newText[i] : "");
           } else if (iterations > i) {
             newCharacters.push(
-              letters[Math.floor(Math.random() * letters.length)]
+              letters[Math.floor(Math.random() * letters.length)],
             );
           } else {
             newCharacters.push(i < originalText.length ? originalText[i] : "");
@@ -128,8 +128,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const positionElement = leaderboardIndexToPositionElement.get(index);
 
     if (nameElement && scoreElement && positionElement) {
-      if (!(nameElement.textContent === data.teamName)) {
-        animateTextChange(nameElement, data.teamName);
+      if (!(nameElement.textContent === data.team_name)) {
+        // changed: was data.teamName
+        animateTextChange(nameElement, data.team_name); // changed: was data.teamName
       }
       if (scoreElement.textContent !== String(data.points)) {
         animateTextChange(scoreElement, String(data.points));
@@ -175,7 +176,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const flagNameDiv = document.createElement("div");
     flagNameDiv.classList.add("flag-status__flag_name");
-    flagNameDiv.textContent = data.name;
+    flagNameDiv.textContent = data.challenge_name; // changed: was data.name
     entryDiv.appendChild(flagNameDiv);
 
     const flagStatusTextDiv = document.createElement("div");
@@ -186,22 +187,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
     entryDiv.appendChild(flagStatusTextDiv);
 
-    flagIndexToStatusElement.set(data.name, flagStatusTextDiv);
+    flagIndexToStatusElement.set(data.challenge_name, flagStatusTextDiv); // changed: was data.name
 
     return entryDiv;
   }
 
-  function updateFlagStatusEntry(flagId, data) {
-    const statusElement = flagIndexToStatusElement.get(data.name);
+  function updateFlagStatusEntry(data) {
+    // changed: removed unused flagId param
+    const statusElement = flagIndexToStatusElement.get(data.challenge_name); // changed: was data.name
 
     if (statusElement) {
-      const newStatus = data.team ? `${data.team}` : "Unsolved";
+      const newStatus = data.team_name ? `${data.team_name}` : "Unsolved"; // changed: was data.team
 
       if (statusElement.textContent !== newStatus) {
         animateTextChange(statusElement, newStatus);
 
         // Toggle unsolved class
-        if (data.team) {
+        if (data.team_name) {
+          // changed: was data.team
           statusElement.classList.remove("unsolved");
         } else {
           statusElement.classList.add("unsolved");
@@ -211,27 +214,20 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function updateFlagStatus(newData) {
-    const entries = Object.entries(newData).reverse();
-    // Update entries
-    entries.forEach(([flagId, data]) => {
-      if (flagIndexToStatusElement.has(data.name)) {
+    const entries = [...newData].reverse(); // changed: was Object.entries(newData).reverse() — API now returns array
+    entries.forEach((data) => {
+      // changed: was ([flagId, data])
+      if (flagIndexToStatusElement.has(data.challenge_name)) {
+        // changed: was data.name
         // Update existing entry
-        updateFlagStatusEntry(flagId, data);
+        updateFlagStatusEntry(data); // changed: removed flagId arg
       } else {
         // Create new entry
         const entry = createFlagStatusEntry(data);
         flagStatusContainer.appendChild(entry);
-        updateFlagStatusEntry(flagId, data);
+        updateFlagStatusEntry(data); // changed: removed flagId arg
       }
     });
-  }
-
-  function updateCountdown() {
-    if (currentEpoch === null) return;
-
-    const now = Math.floor(Date.now() / 1000);
-    const remaining = currentEpoch - now;
-    countdownElement.textContent = formatTime(remaining);
   }
 
   async function updateData() {
@@ -240,13 +236,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     updateLeaderboard(newLeaderboardData);
 
-    const flagStatusResponse = await fetch("/api/flag-status");
+    const flagStatusResponse = await fetch("/api/leaderboard/first-blood");
     const newFlagStatusData = await flagStatusResponse.json();
 
     updateFlagStatus(newFlagStatusData);
   }
   async function updateTime() {
-    const epochResponse = await fetch("/api/end-time");
+    const epochResponse = await fetch("/api/countdown/");
     const epochData = await epochResponse.json();
 
     currentEpoch = epochData.epoch;
