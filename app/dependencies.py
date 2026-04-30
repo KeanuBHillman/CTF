@@ -1,37 +1,46 @@
-from fastapi import Depends, HTTPException, Request
+"""
+Shared FastAPI dependencies.
+"""
+
+from fastapi import Cookie, Depends, HTTPException, status
 from sqlmodel import Session, select
 
-from database import CtfDB, Member
-
-
-def get_session():
-    with CtfDB.session() as session:
-        yield session
+from database import Member, get_session
 
 
 async def get_current_member(
-    request: Request,
+    member_name: str = Cookie(
+        default=None,
+        description="Your student number, set automatically after login",
+    ),
+    team_name: str = Cookie(
+        default=None,
+        description="Your team name, set automatically after login",
+    ),
     session: Session = Depends(get_session),
 ) -> Member:
-    """Dependency to get current Member from member_name and team_name cookies."""
-    member_name_cookie = request.cookies.get("member_name")
-    team_name_cookie = request.cookies.get("team_name")
+    """
+    Resolve the currently authenticated Member from cookies.
 
-    if not member_name_cookie or not team_name_cookie:
+    Raises 401 if cookies are absent or don't match a valid team member.
+    """
+    if not member_name or not team_name:
         raise HTTPException(
-            status_code=401, detail="Missing authentication cookies. Please log in."
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication cookies — please log in first.",
         )
 
-    # Query for member matching name
-    member = session.exec(
-        select(Member).where(Member.name == member_name_cookie)
-    ).first()
-
+    member = session.exec(select(Member).where(Member.name == member_name)).first()
     if not member:
-        raise HTTPException(status_code=401, detail="Invalid member cookie.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"No member found with name '{member_name}'.",
+        )
 
-    # Verify team name matches (extra security check)
-    if member.team.name != team_name_cookie:
-        raise HTTPException(status_code=401, detail="Team mismatch in authentication.")
+    if member.team.name.lower() != team_name.lower():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Cookie team name does not match the member's actual team.",
+        )
 
     return member
