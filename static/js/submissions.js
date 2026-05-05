@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Fetch challenges from API ---
-  fetch("/api/challenges")
+  fetch("/api/challenges/")
     .then((response) => response.json())
     .then((data) => {
       challenges = data;
@@ -209,17 +209,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function updateData() {
-    const challengeResponse = await fetch("/api/challenges");
+    const challengeResponse = await fetch("/api/challenges/");
     const challengeData = await challengeResponse.json();
-    for (let challengeId in challengeData) {
-      element = document.getElementById(
-        `challenge-status-challenge-${challengeId}`,
+
+    challengeData.forEach((challenge) => {
+      const element = document.getElementById(
+        `challenge-status-challenge-${challenge.id}`,
       );
-      const state = challengeData[challengeId].solved ? "Solved" : "Unsolved";
+
+      if (!element) return; // prevent crash
+
+      const state = challenge.solved ? "Solved" : "Unsolved";
+
       if (element.innerHTML !== state) {
         animateTextChange(element, state);
       }
-    }
+    });
   }
+
   setInterval(updateData, 5000);
 });

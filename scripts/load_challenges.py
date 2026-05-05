@@ -1,5 +1,5 @@
 """
-Load challenges from static/challenges/<folder>/challenge.yaml into the database.
+Load challenges from challenges/<folder>/challenge.yaml into the database.
 
 Usage:
     python -m scripts.load_challenges
@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from database import Challenge, CtfDB  # noqa: E402
 
-CHALLENGES_DIR = Path("static/challenges")
+CHALLENGES_DIR = Path("challenges")
 
 DIFFICULTY_ORDER = {
     "very easy": 0,

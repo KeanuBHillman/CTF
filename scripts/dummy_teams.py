@@ -13,17 +13,17 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from database import CtfDB, Member, Team  # noqa: E402
 
 DUMMY_TEAMS = [
-    {"name": "Germany",        "members": ["s12345"]},
-    {"name": "Australia",      "members": ["s12345"]},
-    {"name": "America",        "members": ["s12345"]},
-    {"name": "Spain",          "members": ["s12345"]},
-    {"name": "Moscow",         "members": ["s12345"]},
-    {"name": "Mexico",         "members": ["s12345"]},
-    {"name": "Canada",         "members": ["s12345"]},
-    {"name": "New Zealand",    "members": ["s12345"]},
-    {"name": "United Kingdom", "members": ["s12345"]},
-    {"name": "Wales",          "members": ["s12345"]},
-    {"name": "Ireland",        "members": ["s12345"]},
+    {"name": "Germany", "members": ["s12345a"]},
+    {"name": "Australia", "members": ["s12345b"]},
+    {"name": "America", "members": ["s12345c"]},
+    {"name": "Spain", "members": ["s12345d"]},
+    {"name": "Moscow", "members": ["s12345e"]},
+    {"name": "Mexico", "members": ["s12345f"]},
+    {"name": "Canada", "members": ["s12345g"]},
+    {"name": "New Zealand", "members": ["s12345h"]},
+    {"name": "United Kingdom", "members": ["s12345i"]},
+    {"name": "Wales", "members": ["s12345j"]},
+    {"name": "Ireland", "members": ["s12345k"]},
 ]
 
 

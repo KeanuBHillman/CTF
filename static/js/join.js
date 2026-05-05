@@ -25,14 +25,15 @@ document.addEventListener("DOMContentLoaded", () => {
     })
       .then(async (res) => {
         const result = await res.json();
-        responseText.textContent = result.message || "No response message";
+        responseText.textContent =
+          result.message || result.detail || "No response message";
         if (res.status === 200) {
           responseBox.classList.add("response-success");
           responseBox.style.display = "flex";
           // ✅ Redirect after short delay so user sees success
           setTimeout(() => {
             window.location.href = "/ctf";
-          }, 1000);
+          }, 500);
         } else {
           responseBox.classList.add("response-error");
           responseBox.style.display = "flex";

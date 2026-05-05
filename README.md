@@ -35,7 +35,7 @@ Most endpoints require `member_name` and `team_name` cookies. These are set auto
 
 ## Challenge YAML format
 
-Each challenge lives in `static/challenges/<folder>/challenge.yaml`:
+Each challenge lives in `challenges/<folder>/challenge.yaml`:
 
 ```yaml
 title: My Challenge
@@ -44,6 +44,12 @@ points: 100
 description: Find the hidden flag.
 flag: CTF{s0m3_fl4g}
 ```
+
+## Endpoints
+/             - Allows creating a team
+/join         - Allows joining a team
+/ctf          - Shows all the challenges and allows submission (requires user to join a team)
+/leaderboard  - Shows the current leaderboard
 
 ## Tests
 

@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   async function updateData() {
-    const leaderboardResponse = await fetch("/api/leaderboard");
+    const leaderboardResponse = await fetch("/api/leaderboard/");
     const newLeaderboardData = await leaderboardResponse.json();
 
     updateLeaderboard(newLeaderboardData);

@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   async function updateData() {
     try {
-      const leaderboardResponse = await fetch("/api/leaderboard");
+      const leaderboardResponse = await fetch("/api/leaderboard/");
       const newLeaderboardData = await leaderboardResponse.json();
 
       const flagStatusResponse = await fetch("/api/leaderboard/first-blood");

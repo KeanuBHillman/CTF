@@ -15,9 +15,9 @@ API docs:
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+import os
 from database import CtfDB
 
 from .routers import admin, challenges, countdown, leaderboard, teams
@@ -82,6 +82,29 @@ def page_leaderboard():
 @app.get("/ctf")
 def page_ctf():
     return FileResponse("templates/submissions.html")
+
+class SecureStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        normalized_path = os.path.normpath(path)
+
+        # Block challenge.yaml
+        if os.path.basename(normalized_path).lower() == "challenge.yaml":
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        response = await super().get_response(path, scope)
+
+        # Force download
+        filename = os.path.basename(normalized_path)
+        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        return response
+
+# Mount the directory
+app.mount(
+    "/challenges/files",
+    SecureStaticFiles(directory="challenges"),
+    name="challenges-files",
+)
 
 app.include_router(challenges.router)
 app.include_router(teams.router)
