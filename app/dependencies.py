@@ -3,9 +3,9 @@ Shared FastAPI dependencies.
 """
 
 from fastapi import Cookie, Depends, HTTPException, status
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
-from database import Member, get_session
+from database import Member, Team, get_session
 
 
 async def get_current_member(
@@ -30,17 +30,23 @@ async def get_current_member(
             detail="Missing authentication cookies — please log in first.",
         )
 
-    member = session.exec(select(Member).where(Member.name == member_name)).first()
+    team = session.exec(
+        select(Team).where(func.lower(Team.name) == team_name.lower())
+    ).first()
+
+    if not team:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Team not found.",
+        )
+
+    member = session.exec(
+        select(Member).where(Member.name == member_name, Member.team_id == team.id)
+    ).first()
     if not member:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"No member found with name '{member_name}'.",
-        )
-
-    if member.team.name.lower() != team_name.lower():
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Cookie team name does not match the member's actual team.",
         )
 
     return member
