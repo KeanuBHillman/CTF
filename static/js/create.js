@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // changed: was 200, FastAPI returns 201 for create
           responseBox.classList.add("response-success");
           responseBox.style.display = "flex";
-          // ✅ Redirect after short delay so user sees success
+          //  Redirect after short delay so user sees success
           setTimeout(() => {
             window.location.href = "/ctf";
           }, 1000);

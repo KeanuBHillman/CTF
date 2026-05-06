@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (res.status === 200) {
           responseBox.classList.add("response-success");
           responseBox.style.display = "flex";
-          // ✅ Redirect after short delay so user sees success
+          //  Redirect after short delay so user sees success
           setTimeout(() => {
             window.location.href = "/ctf";
           }, 500);
