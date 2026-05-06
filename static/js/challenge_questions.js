@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
               question_text: "What is the main technology used in this challenge?",
               question_type: "text",
               required: true,
+              points: 75,
               order: 1
             },
             {
@@ -67,6 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
               question_text: "What vulnerability did you identify?",
               question_type: "textarea",
               required: true,
+              points: 150,
               order: 2
             },
             {
@@ -74,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
               question_text: "How would you fix this vulnerability?",
               question_type: "textarea",
               required: false,
+              points: 75,
               order: 3
             }
           ];
@@ -92,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
             question_text: "What is the main technology used in this challenge?",
             question_type: "text",
             required: true,
+            points: 75,
             order: 1
           },
           {
@@ -99,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
             question_text: "What vulnerability did you identify?",
             question_type: "textarea",
             required: true,
+            points: 150,
             order: 2
           }
         ];
@@ -107,10 +112,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function renderQuestions() {
+    const totalPoints = questions.reduce((sum, q) => sum + (q.points || 0), 0);
+    
+    // Update challenge points with breakdown
+    if (challengePoints && totalPoints > 0) {
+      challengePoints.innerHTML = `<strong>${totalPoints} points</strong> <small>(${questions.length} questions)</small>`;
+    }
+    
     questionsList.innerHTML = questions.map((q, index) => `
       <div class="question-item">
         <label class="question-label">
-          ${index + 1}. ${q.question_text} ${q.required ? '<span class="required">*</span>' : ''}
+          ${index + 1}. ${q.question_text} 
+          ${q.required ? '<span class="required">*</span>' : ''}
+          <span class="question-points">${q.points || 10} pts</span>
         </label>
         ${q.question_type === 'textarea' 
           ? `<textarea id="question-${q.id}" rows="4" placeholder="Your answer..."></textarea>`
@@ -144,12 +158,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Submit answers to server
-    fetch("/api/challenges/submit-questions", {
+    // Submit answers to server with new points-based API
+    fetch(`/api/challenges/${challengeId}/submit-questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        challenge_id: challengeId,
         answers: answers
       })
     })
@@ -157,13 +170,29 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await res.json();
       
       if (res.status === 200) {
-        showResponse(result.message || "Answers submitted successfully!", "success");
+        // Show points breakdown
+        let message = `🎉 Submission complete!\n`;
+        message += `Points earned: ${result.total_points_earned}\n`;
+        message += `Questions answered: ${result.questions_answered}\n\n`;
+        
+        if (result.breakdown && result.breakdown.length > 0) {
+          message += "Breakdown:\n";
+          result.breakdown.forEach(item => {
+            const status = item.status === "new" ? " NEW" : 
+                          item.status === "already_answered" ? " ALREADY ANSWERED" :
+                          item.status === "not_answered" ? " NOT ANSWERED" : " REQUIRED MISSING";
+            message += `• ${item.points_awarded} pts - ${status}\n`;
+          });
+        }
+        
+        showResponse(message, "success");
+        
         // Clear form after successful submission
         questions.forEach(q => {
           document.getElementById(`question-${q.id}`).value = "";
         });
       } else {
-        showResponse(result.message || "Submission failed.", "error");
+        showResponse(result.detail || "Submission failed.", "error");
       }
     })
     .catch(error => {
