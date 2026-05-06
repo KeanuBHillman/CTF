@@ -1,6 +1,6 @@
-title: House Rules
+title: OSINT Challange 1
 points: 1
-difficulty: Very Easy
+difficulty: Easy - Medium
 flag: CTF_NO_CATS_TO_BE_SCANNED
 description: |
   See <a href="http://103.249.238.54:8081" target="_blank">103.249.238.54:8081</a>
