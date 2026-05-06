@@ -5,7 +5,7 @@ Leaderboard and first-blood (first-submission) endpoints.
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 
-from database import Challenge, FlagSubmission, FirstBloodEntry, LeaderboardEntry, Team, get_session
+from database import Challenge, ChallengeCompletion, FirstBloodEntry, LeaderboardEntry, QuestionAnswer, Team, get_session
 
 router = APIRouter(prefix="/api/leaderboard", tags=["Leaderboard"])
 
@@ -25,7 +25,11 @@ def get_leaderboard(session: Session = Depends(get_session)):
 
     entries = []
     for team in teams:
-        points = sum(c.points for c in team.solved_challenges)
+        # Calculate total points from question answers
+        question_answers = session.exec(
+            select(QuestionAnswer).where(QuestionAnswer.team_id == team.id)
+        ).all()
+        points = sum(answer.points_awarded for answer in question_answers)
         entries.append({"team_name": team.name, "points": points})
 
     entries.sort(key=lambda e: e["points"], reverse=True)
@@ -58,9 +62,9 @@ def get_first_blood(session: Session = Depends(get_session)):
 
     for challenge in challenges:
         first_sub = session.exec(
-            select(FlagSubmission)
-            .where(FlagSubmission.challenge_id == challenge.id)
-            .order_by(FlagSubmission.time)  # type: ignore[arg-type]
+            select(ChallengeCompletion)
+            .where(ChallengeCompletion.challenge_id == challenge.id)
+            .order_by(ChallengeCompletion.time)  # type: ignore[arg-type]
         ).first()
 
         team_name: str | None = None
