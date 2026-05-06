@@ -15,7 +15,7 @@ from database import (
     AdminFlagModify,
     Challenge,
     ChallengeAdmin,
-    FlagSubmission,
+    ChallengeCompletion,
     Member,
     Team,
     TeamPublic,
@@ -56,7 +56,7 @@ def delete_team(team_id: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found.")
 
     # Remove submissions first (FK constraint)
-    subs = session.exec(select(FlagSubmission).where(FlagSubmission.team_id == team_id)).all()
+    subs = session.exec(select(ChallengeCompletion).where(ChallengeCompletion.team_id == team_id)).all()
     for sub in subs:
         session.delete(sub)
 
@@ -107,9 +107,9 @@ def modify_flag(body: AdminFlagModify, session: Session = Depends(get_session)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Challenge not found.")
 
     existing = session.exec(
-        select(FlagSubmission).where(
-            FlagSubmission.team_id == body.team_id,
-            FlagSubmission.challenge_id == body.challenge_id,
+        select(ChallengeCompletion).where(
+            ChallengeCompletion.team_id == body.team_id,
+            ChallengeCompletion.challenge_id == body.challenge_id,
         )
     ).first()
 
@@ -124,7 +124,7 @@ def modify_flag(body: AdminFlagModify, session: Session = Depends(get_session)):
         if not first_member:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Team has no members.")
 
-        session.add(FlagSubmission(challenge_id=body.challenge_id, team_id=body.team_id, member_id=first_member.id))
+        session.add(ChallengeCompletion(challenge_id=body.challenge_id, team_id=body.team_id, member_id=first_member.id))
         session.commit()
         logger.info("Admin added flag '%s' to team '%s'", challenge.title, team.name)
         return {"message": f"Flag '{challenge.title}' added to team '{team.name}'."}
