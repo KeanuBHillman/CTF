@@ -51,10 +51,12 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Right side: submission -->
+                    <!-- Right side: challenge access -->
                     <div class="modal-submission">
-                        <h2>FLAG SUBMISSION</h2>
-                        <input type="text" id="flag-input" placeholder="FLAG" />
+                        <h2>CHALLENGE ACCESS</h2>
+                        <div class="challenge-info">
+                            <p>Click below to start this challenge and answer the questions.</p>
+                        </div>
                         <div
                             class="response-box"
                             id="response-box"
@@ -65,25 +67,11 @@
                                 id="response-text"
                             ></span>
                         </div>
-                        <button id="submit-flag">→</button>
+                        <button id="start-challenge" onclick="console.log('Button clicked directly');">START CHALLENGE</button>
                     </div>
                 </div>
             </div>
         </div>
         <script src="/static/js/submissions.js"></script>
     </body>
-    <script>
-        // Helper to read cookies
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(";").shift();
-        }
-        // Get teamName from cookie
-        const teamName = getCookie("teamName");
-        if (teamName) {
-            const titleElement = document.getElementById("flags-title");
-            titleElement.textContent = teamName.toUpperCase() + "'S FLAGS";
-        }
-    </script>
 </html>

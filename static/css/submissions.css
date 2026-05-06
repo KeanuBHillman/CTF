@@ -388,3 +388,163 @@ a:hover {
     background:
         linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), #4caf50; /* green */
 }
+
+/* === Challenge Questions Page Styles === */
+.questions-container {
+    width: var(--flags-width);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 30px;
+}
+
+.challenge-header {
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 2px solid var(--primary-red);
+}
+
+.challenge-header h1 {
+    font-size: clamp(24px, 4vw, 48px);
+    color: var(--primary-red);
+    margin: 0 0 10px 0;
+}
+
+.challenge-meta {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: clamp(14px, 2.5vw, 18px);
+}
+
+.challenge-meta span {
+    padding: 5px 15px;
+    background: #191919;
+    border-radius: 5px;
+}
+
+.challenge-description {
+    background: #191919;
+    padding: 30px;
+    border-left: 4px solid var(--primary-red);
+    font-size: clamp(14px, 2.5vw, 16px);
+    line-height: 1.6;
+}
+
+.questions-section {
+    background: #191919;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.questions-section h2 {
+    color: var(--primary-red);
+    margin: 0 0 30px 0;
+    font-size: clamp(18px, 3vw, 24px);
+}
+
+.question-item {
+    margin-bottom: 25px;
+}
+
+.question-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #fff;
+    font-size: clamp(14px, 2.5vw, 16px);
+}
+
+.question-label .required {
+    color: var(--primary-red);
+    margin-left: 5px;
+}
+
+.question-item input[type="text"],
+.question-item textarea {
+    width: 100%;
+    padding: 15px;
+    font-family: "Kode Mono", monospace;
+    font-size: clamp(14px, 2vw, 16px);
+    background: #252525;
+    border: 1px solid #444;
+    border-bottom: 2px solid var(--primary-red);
+    color: #fff;
+    border-radius: 5px 5px 0 0;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.question-item input[type="text"]:focus,
+.question-item textarea:focus {
+    outline: none;
+    border-bottom-color: #4caf50;
+}
+
+.question-item textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.submission-section {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+#submit-answers {
+    padding: 15px 40px;
+    background: var(--primary-red);
+    color: #fff;
+    font-family: "Kode Mono", monospace;
+    font-size: clamp(16px, 3vw, 20px);
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    box-shadow: 2px 6px 4px rgba(0, 0, 0, 0.5);
+    transition: background 0.3s ease;
+    min-width: 200px;
+}
+
+#submit-answers:hover {
+    background: var(--primary-red-lighter);
+}
+
+.secondary-btn {
+    padding: 12px 30px;
+    background: transparent;
+    color: var(--primary-red);
+    font-family: "Kode Mono", monospace;
+    font-size: clamp(14px, 2.5vw, 16px);
+    border: 2px solid var(--primary-red);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.secondary-btn:hover {
+    background: var(--primary-red);
+    color: #fff;
+}
+
+/* Responsive design for questions page */
+@media (max-width: 900px) {
+    .questions-container {
+        width: 95%;
+    }
+    
+    .challenge-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .submission-section {
+        align-items: stretch;
+    }
+    
+    #submit-answers,
+    .secondary-btn {
+        width: 100%;
+    }
+}

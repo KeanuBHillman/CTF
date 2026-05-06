@@ -83,6 +83,10 @@ def page_leaderboard():
 def page_ctf():
     return FileResponse("templates/submissions.html")
 
+@app.get("/challenge/{challenge_id}/questions")
+def page_challenge_questions(challenge_id: int):
+    return FileResponse("templates/challenge_questions.html")
+
 class SecureStaticFiles(StaticFiles):
     async def get_response(self, path, scope):
         normalized_path = os.path.normpath(path)

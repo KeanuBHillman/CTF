@@ -9,9 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = document.getElementById("modal-close");
   const upBtn = document.getElementById("modal-up");
   const downBtn = document.getElementById("modal-down");
-  const submitButton = document.getElementById("submit-flag");
+  const startChallengeButton = document.getElementById("start-challenge");
   const teamInput = document.getElementById("team-input");
-  const flagInput = document.getElementById("flag-input");
 
   let challenges = [];
   let currentIndex = 0;
@@ -160,52 +159,33 @@ document.addEventListener("DOMContentLoaded", () => {
     modalDiv.style.display = "none";
   });
 
-  // --- Optional: Submit flag ---
-  if (submitButton) {
-    submitButton.addEventListener("click", () => {
-      const flagValue = flagInput.value.trim();
-      const responseBox = document.getElementById("response-box");
-      const responseText = document.getElementById("response-text");
-
-      // Reset box
-      responseBox.style.display = "none";
-      responseBox.className = "response-box";
-
-      if (!flagValue) {
-        responseText.textContent = "No Flag";
-        responseBox.classList.add("response-error");
-        responseBox.style.display = "flex";
+  // --- Start Challenge Button ---
+  if (startChallengeButton) {
+    startChallengeButton.addEventListener("click", () => {
+      console.log("Start challenge button clicked");
+      console.log("Current index:", currentIndex);
+      console.log("Challenges:", challenges);
+      
+      if (challenges.length === 0) {
+        alert("Challenges not loaded yet. Please wait a moment and try again.");
         return;
       }
-
-      fetch("/api/challenges/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          challenge_id: challenges[currentIndex].id,
-          flag: flagValue,
-        }),
-      })
-        .then(async (res) => {
-          const result = await res.json();
-          responseText.textContent = result.message || "No response message";
-
-          if (res.status === 200) {
-            responseBox.classList.add("response-success");
-            flagInput.value = "";
-          } else {
-            responseBox.classList.add("response-error");
-          }
-
-          responseBox.style.display = "flex";
-        })
-        .catch((err) => {
-          responseText.textContent = "Server error, please try again.";
-          responseBox.classList.add("response-error");
-          responseBox.style.display = "flex";
-          console.error("Error submitting flag:", err);
-        });
+      
+      if (!challenges[currentIndex]) {
+        alert("Invalid challenge selected.");
+        return;
+      }
+      
+      const challengeId = challenges[currentIndex].id;
+      const challengeTitle = challenges[currentIndex].title;
+      
+      console.log("Redirecting to challenge:", challengeId, challengeTitle);
+      
+      // Redirect to challenge-specific questions page
+      window.location.href = `/challenge/${challengeId}/questions`;
     });
+  } else {
+    console.error("Start challenge button not found");
   }
 
   async function updateData() {

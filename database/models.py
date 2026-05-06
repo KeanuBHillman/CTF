@@ -43,6 +43,7 @@ class Challenge(ChallengeBase, table=True):
         back_populates="solved_challenges",
         link_model=FlagSubmission,
     )
+    questions: list["Question"] = Relationship(back_populates="challenge")
 
 
 class ChallengePublic(ChallengeBase):
@@ -72,6 +73,32 @@ class ChallengeAdmin(ChallengeBase):
 
     id: int
     flag: str
+
+
+# ─── Questions ────────────────────────────────────────────────────────────────
+
+
+class Question(SQLModel, table=True):
+    """Questions for a specific challenge that teams must answer."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    challenge_id: int = Field(foreign_key="challenge.id", description="Which challenge this question belongs to")
+    question_text: str = Field(description="The question to ask")
+    question_type: str = Field(default="text", description="Type: 'text' or 'textarea'")
+    required: bool = Field(default=True, description="Is this question required?")
+    order: int = Field(default=1, description="Display order (1, 2, 3...)")
+
+    challenge: Challenge = Relationship(back_populates="questions")
+
+
+class QuestionPublic(SQLModel):
+    """Question data returned to competitors."""
+
+    id: int
+    question_text: str
+    question_type: str
+    required: bool
+    order: int
 
 
 # ─── Team / Member ────────────────────────────────────────────────────────────

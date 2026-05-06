@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>GIC CTF - Challenge Questions</title>
+        <!-- FONT -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/static/css/submissions.css" />
+    </head>
+    <body>
+        <div id="app">
+            <div class="questions-container">
+                <div class="challenge-header">
+                    <h1 id="challenge-title">Challenge Name</h1>
+                    <div class="challenge-meta">
+                        <span id="challenge-points">0 points</span>
+                        <span id="challenge-difficulty">Medium</span>
+                    </div>
+                </div>
+                
+                <div class="challenge-description" id="challenge-description">
+                    Loading challenge description...
+                </div>
+
+                <div class="questions-section">
+                    <h2>Questions</h2>
+                    <div id="questions-list">
+                        <!-- Questions will be loaded dynamically -->
+                    </div>
+
+                    <div class="submission-section">
+                        <div
+                            class="response-box"
+                            id="response-box"
+                            style="display: none"
+                        >
+                            <span class="response-text" id="response-text"></span>
+                        </div>
+                        <button id="submit-answers">SUBMIT ANSWERS</button>
+                        <button id="back-to-challenges" class="secondary-btn">← BACK TO CHALLENGES</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="/static/js/challenge_questions.js"></script>
+    </body>
+</html>
