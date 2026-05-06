@@ -460,6 +460,17 @@ a:hover {
     margin-left: 5px;
 }
 
+.question-label .question-points {
+    float: right;
+    background: linear-gradient(135deg, var(--primary-red), #4caf50);
+    color: #000;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 10px;
+}
+
 .question-item input[type="text"],
 .question-item textarea {
     width: 100%;
