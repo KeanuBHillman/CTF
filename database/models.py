@@ -5,24 +5,24 @@ SQLModel database models and Pydantic request/response schemas.
 from datetime import datetime
 from typing import Optional
 
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
 
 
 # ─── Link table ──────────────────────────────────────────────────────────────
 
 
-class FlagSubmission(SQLModel, table=True):
+class ChallengeCompletion(SQLModel, table=True):
     """
-    Records that a *team* solved a challenge.
+    Records that a *team* completed a challenge by answering questions.
 
     Composite primary key (challenge_id, team_id) ensures a team can only
-    submit each challenge once, regardless of which member submits it.
+    complete each challenge once, regardless of which member submits it.
     """
 
     challenge_id: int = Field(foreign_key="challenge.id", primary_key=True)
     team_id: int = Field(foreign_key="team.id", primary_key=True)
-    member_id: int = Field(foreign_key="member.id", description="Member who submitted the flag")
-    time: datetime = Field(default_factory=datetime.now, description="UTC time of submission")
+    member_id: int = Field(foreign_key="member.id", description="Member who completed the challenge")
+    time: datetime = Field(default_factory=datetime.now, description="UTC time of completion")
 
 
 # ─── Challenge ────────────────────────────────────────────────────────────────
@@ -37,11 +37,11 @@ class ChallengeBase(SQLModel):
 
 class Challenge(ChallengeBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    flag: str = Field(description="Secret flag string — never exposed to competitors")
+    flag: Optional[str] = Field(default=None, description="Legacy flag field - no longer used")
 
     teams: list["Team"] = Relationship(
         back_populates="solved_challenges",
-        link_model=FlagSubmission,
+        link_model=ChallengeCompletion,
     )
     questions: list["Question"] = Relationship(back_populates="challenge")
 
@@ -72,7 +72,7 @@ class ChallengeAdmin(ChallengeBase):
     """Full challenge data including the flag — admin use only."""
 
     id: int
-    flag: str
+    flag: Optional[str] = None
 
 
 # ─── Questions ────────────────────────────────────────────────────────────────
@@ -86,6 +86,7 @@ class Question(SQLModel, table=True):
     question_text: str = Field(description="The question to ask")
     question_type: str = Field(default="text", description="Type: 'text' or 'textarea'")
     required: bool = Field(default=True, description="Is this question required?")
+    points: int = Field(default=10, description="Points awarded for answering this question")
     order: int = Field(default=1, description="Display order (1, 2, 3...)")
 
     challenge: Challenge = Relationship(back_populates="questions")
@@ -98,7 +99,36 @@ class QuestionPublic(SQLModel):
     question_text: str
     question_type: str
     required: bool
+    points: int
     order: int
+
+
+class QuestionAnswer(SQLModel, table=True):
+    """Stores team answers to individual questions."""
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    team_id: int = Field(foreign_key="team.id")
+    question_id: int = Field(foreign_key="question.id") 
+    answer_text: str = Field(description="Team's answer to the question")
+    points_awarded: int = Field(description="Points awarded for this answer")
+    created_at: datetime = Field(default_factory=datetime.now)
+    
+    # Ensure one answer per team per question
+    __table_args__ = (UniqueConstraint("team_id", "question_id"),)
+
+
+class QuestionSubmissionCreate(SQLModel):
+    """Request body for submitting answers to questions."""
+    
+    answers: dict[int, str] = Field(description="Map of question_id -> answer_text")
+
+
+class QuestionSubmissionResponse(SQLModel):
+    """Response after submitting question answers."""
+    
+    total_points_earned: int
+    questions_answered: int
+    breakdown: list[dict] = Field(description="Points breakdown per question")
 
 
 # ─── Team / Member ────────────────────────────────────────────────────────────
@@ -115,11 +145,12 @@ class Member(SQLModel, table=True):
 class Team(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, description="Team display name")
+    total_points: int = Field(default=0, description="Total points earned from question answers")
 
     members: list[Member] = Relationship(back_populates="team")
     solved_challenges: list[Challenge] = Relationship(
         back_populates="teams",
-        link_model=FlagSubmission,
+        link_model=ChallengeCompletion,
     )
 
 
@@ -189,36 +220,6 @@ class TeamJoin(SQLModel):
 
     model_config = {
         "json_schema_extra": {"examples": [{"team_name": "Australia", "member_name": "s7654321"}]}
-    }
-
-
-class FlagSubmissionCreate(SQLModel):
-    """Body for POST /api/challenges/submit."""
-
-    challenge_id: int
-    flag: str = Field(description="The flag string to validate")
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [{"challenge_id": 3, "flag": "CTF{s0m3_s3cr3t_fl4g}"}]
-        }
-    }
-
-
-class FlagSubmissionResponse(SQLModel):
-    """Result of a flag submission attempt."""
-
-    success: bool
-    message: str
-    points_awarded: int = 0
-    already_submitted: bool = False
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": [
-                {"success": True, "message": "Flag accepted!", "points_awarded": 100, "already_submitted": False}
-            ]
-        }
     }
 
 
