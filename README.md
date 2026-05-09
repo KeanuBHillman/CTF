@@ -15,6 +15,9 @@ uv sync
 # Load challenges from YAML files
 uv run python -m scripts.load_challenges
 
+# Load sample questions with points (new - temporary) 
+uv run python -m scripts.add_questions_with_points.py
+
 # (Optional) Seed dummy teams for local development
 uv run python -m scripts.dummy_teams
 ```
