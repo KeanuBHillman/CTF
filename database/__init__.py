@@ -1,6 +1,6 @@
 from .db import CtfDB, get_session
 from .models import (
-    AdminFlagModify,
+    AdminCompletionModify,
     Challenge,
     ChallengeAdmin,
     ChallengeBase,
@@ -24,7 +24,7 @@ from .models import (
 __all__ = [
     "CtfDB",
     "get_session",
-    "AdminFlagModify",
+    "AdminCompletionModify",
     "Challenge",
     "ChallengeAdmin",
     "ChallengeBase",

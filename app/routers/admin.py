@@ -1,5 +1,5 @@
 """
-Admin endpoints for managing teams and flag submissions.
+Admin endpoints for managing teams and challenge completions.
 
 These routes are currently unauthenticated
 It should be fine security through obsurity or something
@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from database import (
-    AdminFlagModify,
+    AdminCompletionModify,
     Challenge,
     ChallengeAdmin,
     ChallengeCompletion,
@@ -44,7 +44,7 @@ def admin_list_teams(session: Session = Depends(get_session)):
 @router.delete(
     "/teams/{team_id}",
     summary="Delete a team",
-    description="Permanently removes a team, all its members, and all its flag submissions.",
+    description="Permanently removes a team, all its members, and all its challenge completions.",
     responses={
         200: {"description": "Team deleted"},
         404: {"description": "Team not found"},
@@ -71,13 +71,13 @@ def delete_team(team_id: int, session: Session = Depends(get_session)):
     return {"message": f"Team '{team.name}' deleted."}
 
 
-# === Flag Submissions ===
+# === Challenge Completions ===
 
 
 @router.get(
     "/challenges",
     response_model=list[ChallengeAdmin],
-    summary="List all challenges with flags (admin)",
+    summary="List all challenges (admin)",
     description="Returns every challenge **including the flag value** — admin use only.",
 )
 def admin_list_challenges(session: Session = Depends(get_session)):
@@ -85,19 +85,19 @@ def admin_list_challenges(session: Session = Depends(get_session)):
 
 
 @router.post(
-    "/flags/modify",
-    summary="Manually add or remove a team's flag submission",
+    "/completions/modify",
+    summary="Manually add or remove a team's challenge completion",
     description=(
-        "Allows admins to credit or revoke a flag submission for a team without going through "
+        "Allows admins to credit or revoke a challenge completion for a team without going through "
         "the normal submission flow. Use `action: 'add'` or `action: 'remove'`."
     ),
     responses={
-        200: {"description": "Submission added or removed"},
+        200: {"description": "Completion added or removed"},
         400: {"description": "Invalid action or already submitted"},
         404: {"description": "Team or challenge not found"},
     },
 )
-def modify_flag(body: AdminFlagModify, session: Session = Depends(get_session)):
+def modify_completion(body: AdminCompletionModify, session: Session = Depends(get_session)):
     team = session.get(Team, body.team_id)
     if not team:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found.")
@@ -117,7 +117,7 @@ def modify_flag(body: AdminFlagModify, session: Session = Depends(get_session)):
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Team has already submitted this flag.",
+                detail="Team has already completed this challenge.",
             )
         # Use first member as placeholder submitter
         first_member = session.exec(select(Member).where(Member.team_id == body.team_id)).first()
@@ -126,19 +126,19 @@ def modify_flag(body: AdminFlagModify, session: Session = Depends(get_session)):
 
         session.add(ChallengeCompletion(challenge_id=body.challenge_id, team_id=body.team_id, member_id=first_member.id))
         session.commit()
-        logger.info("Admin added flag '%s' to team '%s'", challenge.title, team.name)
-        return {"message": f"Flag '{challenge.title}' added to team '{team.name}'."}
+        logger.info("Admin added completion for '%s' to team '%s'", challenge.title, team.name)
+        return {"message": f"Completion for '{challenge.title}' added to team '{team.name}'."}
 
     elif body.action == "remove":
         if not existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Team has not submitted this flag.",
+                detail="Team has not completed this challenge.",
             )
         session.delete(existing)
         session.commit()
-        logger.info("Admin removed flag '%s' from team '%s'", challenge.title, team.name)
-        return {"message": f"Flag '{challenge.title}' removed from team '{team.name}'."}
+        logger.info("Admin removed completion for '%s' from team '%s'", challenge.title, team.name)
+        return {"message": f"Completion for '{challenge.title}' removed from team '{team.name}'."}
 
     else:
         raise HTTPException(

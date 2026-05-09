@@ -275,8 +275,8 @@ class TeamActionResponse(SQLModel):
 # ─── Admin schemas ────────────────────────────────────────────────────────────
 
 
-class AdminFlagModify(SQLModel):
-    """Body for POST /api/admin/flags/modify."""
+class AdminCompletionModify(SQLModel):
+    """Body for POST /api/admin/completions/modify."""
 
     team_id: int
     challenge_id: int
