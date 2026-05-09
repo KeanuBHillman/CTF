@@ -5,7 +5,30 @@ SQLModel database models and Pydantic request/response schemas.
 from datetime import datetime
 from typing import Optional
 
+from pydantic import model_validator
+from sqlalchemy import event
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
+
+
+VALID_ANSWER_TYPES = {"exact", "partial", "multiple_choice", "regex", "numeric"}
+
+# question validation
+def validate_question_automarking_config(question: "Question") -> "Question":
+    if not question.expected_answer or not question.expected_answer.strip():
+        raise ValueError("Questions must define a non-empty expected_answer for automarking.")
+
+    if question.answer_type not in VALID_ANSWER_TYPES:
+        raise ValueError(
+            f"Invalid answer_type '{question.answer_type}'. Expected one of: {', '.join(sorted(VALID_ANSWER_TYPES))}."
+        )
+
+    if question.answer_type == "numeric" and question.tolerance is not None and question.tolerance < 0:
+        raise ValueError("Numeric questions cannot use a negative tolerance.")
+
+    if question.answer_type != "numeric" and question.tolerance is not None:
+        raise ValueError("Tolerance can only be set for numeric questions.")
+
+    return question
 
 
 # ─── Link table ──────────────────────────────────────────────────────────────
@@ -88,8 +111,28 @@ class Question(SQLModel, table=True):
     required: bool = Field(default=True, description="Is this question required?")
     points: int = Field(default=10, description="Points awarded for answering this question")
     order: int = Field(default=1, description="Display order (1, 2, 3...)")
-
+    
+    # Automarking fields
+    expected_answer: Optional[str] = Field(default=None, description="Expected answer for auto-marking")
+    answer_type: str = Field(default="exact", description="Auto-marking type: exact, partial, multiple_choice, regex, or numeric")
+    case_sensitive: bool = Field(default=False, description="Whether auto-marking should be case-sensitive")
+    tolerance: Optional[float] = Field(default=None, description="Numeric tolerance for auto-marking (if applicable)")
+    # We can decide whether to include partial credit in the future if we want.
     challenge: Challenge = Relationship(back_populates="questions")
+
+    @model_validator(mode="after")
+    def validate_automarking_config(self):
+        return validate_question_automarking_config(self)
+
+
+@event.listens_for(Question, "before_insert")
+def validate_question_before_insert(mapper, connection, target):
+    validate_question_automarking_config(target)
+
+
+@event.listens_for(Question, "before_update")
+def validate_question_before_update(mapper, connection, target):
+    validate_question_automarking_config(target)
 
 
 class QuestionPublic(SQLModel):
@@ -129,7 +172,8 @@ class QuestionSubmissionResponse(SQLModel):
     total_points_earned: int
     questions_answered: int
     breakdown: list[dict] = Field(description="Points breakdown per question")
-
+    automarking_enabled: bool = Field(default=True, description="Whether automarking was applied to this submission")
+    total_possible_points: Optional[int] = Field(default=None, description="Total possible points for the questions")
 
 # ─── Team / Member ────────────────────────────────────────────────────────────
 

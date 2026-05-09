@@ -4,6 +4,9 @@ Challenge and flag-submission endpoints.
 
 import logging
 
+from typing import Tuple
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 
@@ -27,6 +30,90 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/challenges", tags=["Challenges"])
 
+# automarking logic
+def validate_answer(question: Question, submitted_answer: str) -> Tuple[int, str]:
+
+    """ 
+    Takes a question and submitted answer, returns (points_awarded, status)
+    
+    Status codes:
+    - "correct": Full points awarded
+    - "incorrect": No points awarded
+    - "empty_answer": No answer provided
+    - "missing_expected_answer": Question is not configured for automarking
+    - "invalid_answer_type": Unsupported validation type
+    """
+    if not submitted_answer.strip():
+        return 0, "empty_answer"
+    
+    if not question.expected_answer:
+        return 0, "missing_expected_answer"
+    
+
+    submitted = submitted_answer.strip()
+    expected = question.expected_answer.strip()
+
+    if question.answer_type == "exact":
+        if question.case_sensitive:
+            match = submitted == expected
+        else:
+            match = submitted.lower() == expected.lower()
+
+        return (question.points, "correct") if match else (0, "incorrect")
+    
+    elif question.answer_type == "partial":
+
+        if question.case_sensitive:
+            match = (expected in  submitted)
+        else:
+            match = (expected.lower() in submitted.lower())
+
+        return (question.points, "correct") if match else (0, "incorrect")
+    
+    elif question.answer_type == "multiple_choice":
+        # Expected answer contains options separated by |
+        # Example: "flask|django|fastapi" accepts any of those
+
+        valid_options = [option.strip() for option in expected.split("|")]
+
+        if question.case_sensitive:
+            match = submitted in valid_options
+        else:
+            match = submitted.lower() in [opt.lower() for opt in valid_options]
+
+
+        return (question.points, "correct") if match else (0, "incorrect")
+    
+    elif question.answer_type == "regex":
+        # pattern matching
+
+        try:
+            flags = 0 if question.case_sensitive else re.IGNORECASE
+            match = re.search(expected, submitted, flags) is not None
+            return (question.points, "correct") if match else (0, "incorrect")
+        except re.error:
+             # Invalid regex pattern, fall back to exact matching
+            return validate_answer(
+                Question(**{**question.dict(), "answer_type": "exact"}), 
+                submitted_answer
+            )
+        
+    elif question.answer_type == "numeric":
+        try:
+            submitted_num = float(submitted)
+            expected_num = float(expected)
+            tolerance = question.tolerance if question.tolerance is not None else 0.0
+            
+            if abs(submitted_num - expected_num) <= tolerance:
+                return (question.points, "correct")
+            else:
+                return 0, "incorrect"
+        except ValueError:
+            # Submitted answer is not a valid number
+            return 0, "incorrect"
+        
+    else:
+        return 0, "invalid_answer_type"
 
 @router.get(
     "/",
@@ -159,63 +246,64 @@ def submit_questions(
     # Process each submitted answer
     for question in questions:
         if question.id in submission.answers:
-            answer_text = submission.answers[question.id].strip()
+            answer_text = submission.answers[question.id]
             
-            if answer_text:  # Non-empty answer
-                # Check if this question was already answered
-                existing_answer = session.exec(
-                    select(QuestionAnswer).where(
-                        QuestionAnswer.team_id == member.team_id,
-                        QuestionAnswer.question_id == question.id,
-                    )
-                ).first()
+            # Check if this question was already answered
+            existing_answer = session.exec(
+                select(QuestionAnswer).where(
+                    QuestionAnswer.team_id == member.team_id,
+                    QuestionAnswer.question_id == question.id,
+                )
+            ).first()
+            
+            if not existing_answer:
+                # Use validation for all answers (empty or not)
+                points_awarded, validation_status = validate_answer(question, answer_text)
                 
-                if not existing_answer:
-                    # Award points for this question
-                    points_awarded = question.points
+                # Always record the answer (even if wrong)
+                question_answer = QuestionAnswer(
+                    team_id=member.team_id,
+                    question_id=question.id,
+                    answer_text=answer_text.strip(),
+                    points_awarded=points_awarded,
+                )
+                session.add(question_answer)
+                
+                # Only count as "answered" and add to team points if they got points
+                if points_awarded > 0:
                     total_points_earned += points_awarded
                     questions_answered += 1
-                    
-                    # Save the answer
-                    question_answer = QuestionAnswer(
-                        team_id=member.team_id,
-                        question_id=question.id,
-                        answer_text=answer_text,
-                        points_awarded=points_awarded,
-                    )
-                    session.add(question_answer)
                     
                     # Update team's total points
                     team = session.get(Team, member.team_id)
                     if team:
                         team.total_points += points_awarded
-                    
-                    breakdown.append({
-                        "question_id": question.id,
-                        "question_text": question.question_text,
-                        "points_awarded": points_awarded,
-                        "status": "new"
-                    })
-                else:
-                    breakdown.append({
-                        "question_id": question.id,
-                        "question_text": question.question_text,
-                        "points_awarded": 0,
-                        "status": "already_answered"
-                    })
+                
+                breakdown.append({
+                    "question_id": question.id,
+                    "question_text": question.question_text,
+                    "points_awarded": points_awarded,
+                    "max_points": question.points,
+                    "status": validation_status,
+                    "submitted_answer": answer_text.strip()
+                })
             else:
                 breakdown.append({
                     "question_id": question.id,
                     "question_text": question.question_text,
                     "points_awarded": 0,
-                    "status": "not_answered"
+                    "max_points": question.points,
+                    "status": "already_answered",
+                    "submitted_answer": existing_answer.answer_text
                 })
         elif question.required:
             breakdown.append({
                 "question_id": question.id,
                 "question_text": question.question_text,
                 "points_awarded": 0,
-                "status": "required_missing"
+                "max_points": question.points,
+                "status": "required_missing",
+                "submitted_answer": ""
             })
 
     # Check if all required questions are answered
@@ -243,22 +331,13 @@ def submit_questions(
 
     session.commit()
 
+    # Calculate total possible points
+    total_possible_points = sum(q.points for q in questions)
+
     return QuestionSubmissionResponse(
         total_points_earned=total_points_earned,
         questions_answered=questions_answered,
         breakdown=breakdown,
+        automarking_enabled=True,
+        total_possible_points=total_possible_points,
     )
-
-    logger.info(
-        "Questions submitted: challenge=%s team_id=%s member=%s answers=%s",
-        challenge.title,
-        member.team_id,
-        member.name,
-        len(answers),
-    )
-
-    return {
-        "success": True,
-        "message": f"Answers submitted successfully for '{challenge.title}'!",
-        "points_awarded": challenge.points,
-    }
