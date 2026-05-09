@@ -16,7 +16,7 @@ uv sync
 uv run python -m scripts.load_challenges
 
 # Load questions with points (new - temporary) 
-uv run python -m scripts.add_questions_with_points.py
+uv run python -m scripts.add_questions_with_points
 
 # (Optional) Seed dummy teams for local development
 uv run python -m scripts.dummy_teams
