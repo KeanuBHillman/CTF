@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const TEAM_SIZE = 2; // 🔧 set number of required S numbers here
+  const TEAM_SIZE = 2; //  set number of required S numbers here
   const teamnameInput = document.getElementById("teamname");
   const snumberFieldsDiv = document.getElementById("snumber-fields");
   const createBtn = document.getElementById("create-btn");
@@ -53,8 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
     })
       .then(async (res) => {
         const result = await res.json();
-        responseText.textContent = result.message || "No response message";
         if (res.status === 201) {
+          responseText.textContent = result.message || "Team created successfully.";
           // changed: was 200, FastAPI returns 201 for create
           responseBox.classList.add("response-success");
           responseBox.style.display = "flex";
@@ -63,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "/ctf";
           }, 1000);
         } else {
+          responseText.textContent = result.detail || result.message || "Request failed.";
           responseBox.classList.add("response-error");
           responseBox.style.display = "flex";
         }

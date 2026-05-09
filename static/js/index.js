@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const positionToScoreElement = new Map();
   const challengeToStatusElement = new Map();
 
-  // Add these at the top with your other constants
+
   const countdownElement = document.getElementById("countdown");
   let currentEpoch = null;
   let countdownInterval = null;

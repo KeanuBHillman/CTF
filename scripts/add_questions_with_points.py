@@ -46,7 +46,7 @@ def build_question(
     )
 
 
-def add_sample_questions():
+def add_questions():
     """Add sample questions with point values to demonstrate the system."""
     
     CtfDB.init()  # Initialize database
@@ -385,7 +385,7 @@ def add_custom_questions(challenge_title: str, questions_data: list):
 
 
 if __name__ == "__main__":
-    add_sample_questions()
+    add_questions()
     
     print("\n" + "=" * 50)
     print(" Example: Adding custom questions for a specific challenge")
