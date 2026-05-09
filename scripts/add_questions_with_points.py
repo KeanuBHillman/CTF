@@ -21,7 +21,7 @@ from sqlmodel import select
 
 # add the question entries here .
 CUSTOM_QUESTIONS_BY_CHALLENGE: dict[str, list[dict]] = {
-    "House Rules": [
+    "HOUSE RULES": [
         {
             "text": "Identify the date, time and the device which the photo was taken?",
             "type": "text",

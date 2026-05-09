@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import yaml
+from sqlmodel import select
 
 # Allow running from project root
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -42,7 +43,17 @@ def load_challenges(challenges_dir: Path = CHALLENGES_DIR) -> None:
     raw.sort(key=lambda x: DIFFICULTY_ORDER.get(x.get("difficulty", "").lower(), 999))
 
     with CtfDB.session() as session:
+        existing_titles = {
+            challenge.title.strip().lower()
+            for challenge in session.exec(select(Challenge)).all()
+        }
+
         for data in raw:
+            title_key = data["title"].strip().lower()
+            if title_key in existing_titles:
+                print(f"Skipping existing challenge: {data['title']}")
+                continue
+
             challenge = Challenge(
                 title=data["title"],
                 points=data["points"],
@@ -51,8 +62,9 @@ def load_challenges(challenges_dir: Path = CHALLENGES_DIR) -> None:
                 flag=data["flag"],
             )
             session.add(challenge)
+            existing_titles.add(title_key)
         session.commit()
-        print(f"Loaded {len(raw)} challenge(s).")
+        print(f"Loaded {len(existing_titles)} challenge(s).")
 
 
 if __name__ == "__main__":
