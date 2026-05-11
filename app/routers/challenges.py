@@ -4,6 +4,7 @@ Challenge and flag-submission endpoints.
 
 import logging
 
+from datetime import datetime
 from typing import Tuple
 import re
 
@@ -30,6 +31,18 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/challenges", tags=["Challenges"])
 
+STRICT_DATE_FORMAT = "%Y - %m - %d"
+
+
+def parse_strict_date(value: str) -> datetime:
+    """Parse date in strict YYYY - MM - DD format."""
+    if not re.fullmatch(r"\d{4} - \d{2} - \d{2}", value):
+        raise ValueError("Date must match YYYY - MM - DD")
+    return datetime.strptime(value, STRICT_DATE_FORMAT)
+
+
+
+
 # automarking logic
 def validate_answer(question: Question, submitted_answer: str) -> Tuple[int, str]:
 
@@ -42,6 +55,7 @@ def validate_answer(question: Question, submitted_answer: str) -> Tuple[int, str
     - "empty_answer": No answer provided
     - "missing_expected_answer": Question is not configured for automarking
     - "invalid_answer_type": Unsupported validation type
+    - "invalid_date_format": Date does not follow YYYY - MM - DD
     """
     if not submitted_answer.strip():
         return 0, "empty_answer"
@@ -64,7 +78,7 @@ def validate_answer(question: Question, submitted_answer: str) -> Tuple[int, str
     elif question.answer_type == "partial":
 
         if question.case_sensitive:
-            match = (expected in  submitted)
+            match = (expected in submitted)
         else:
             match = (expected.lower() in submitted.lower())
 
@@ -94,7 +108,7 @@ def validate_answer(question: Question, submitted_answer: str) -> Tuple[int, str
         except re.error:
              # Invalid regex pattern, fall back to exact matching
             return validate_answer(
-                Question(**{**question.dict(), "answer_type": "exact"}), 
+                Question(**{**question.model_dump(), "answer_type": "exact"}), 
                 submitted_answer
             )
         
@@ -111,6 +125,14 @@ def validate_answer(question: Question, submitted_answer: str) -> Tuple[int, str
         except ValueError:
             # Submitted answer is not a valid number
             return 0, "incorrect"
+
+    elif question.answer_type == "date":
+        try:
+            submitted_date = parse_strict_date(submitted)
+            expected_date = parse_strict_date(expected)
+            return (question.points, "correct") if submitted_date == expected_date else (0, "incorrect")
+        except ValueError:
+            return 0, "invalid_date_format"
         
     else:
         return 0, "invalid_answer_type"
@@ -177,9 +199,11 @@ def get_challenge_questions(
             id=q.id,
             question_text=q.question_text,
             question_type=q.question_type,
+            instructions=q.instructions,
             required=q.required,
             points=q.points,
             order=q.order,
+            answer_type=q.answer_type,
         )
         for q in questions
     ]

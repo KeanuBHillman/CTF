@@ -107,7 +107,8 @@ class Question(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     challenge_id: int = Field(foreign_key="challenge.id", description="Which challenge this question belongs to")
     question_text: str = Field(description="The question to ask")
-    question_type: str = Field(default="text", description="Type: 'text' or 'textarea'")
+    question_type: str = Field(default="text", description="Type: 'text', 'textarea', 'date_blocks', 'time_blocks', or 'coordinate_blocks'")
+    instructions: Optional[str] = Field(default=None, description="Optional formatting instructions shown to users")
     required: bool = Field(default=True, description="Is this question required?")
     points: int = Field(default=10, description="Points awarded for answering this question")
     order: int = Field(default=1, description="Display order (1, 2, 3...)")
@@ -141,9 +142,11 @@ class QuestionPublic(SQLModel):
     id: int
     question_text: str
     question_type: str
+    instructions: Optional[str] = None
     required: bool
     points: int
     order: int
+    answer_type: str
 
 
 class QuestionAnswer(SQLModel, table=True):
