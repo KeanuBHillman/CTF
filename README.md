@@ -12,7 +12,7 @@ A REST API for running a Capture-the-Flag competition. Built with FastAPI, SQLMo
 # (Optional) Install dependencies
 uv sync
 
-# Load challenges from YAML files
+# Load or update challenges from YAML files
 uv run python -m scripts.load_challenges
 
 # Load questions with points (new - temporary) 
@@ -47,6 +47,26 @@ points: 100
 description: Find the hidden flag.
 flag: CTF{s0m3_fl4g}
 ```
+
+### Challenge Files (Image/PDF links)
+
+You can add downloadable files (image, PDF, etc.) directly from challenge descriptions.
+
+1. Place files in the challenge folder, for example:
+   - `challenges/HouseRules/house-rules.jpg`
+   - `challenges/HouseRules/house-rules.pdf`
+2. Add links in `description`:
+
+```yaml
+description: |
+  Download image: <a href="/challenges/files/HouseRules/house-rules.jpg" target="_blank">house-rules.jpg</a><br>
+  Download PDF: <a href="/challenges/files/HouseRules/house-rules.pdf" target="_blank">house-rules.pdf</a>
+```
+
+Notes:
+- Files are served from `/challenges/files/...`
+- `challenge.yaml` is blocked from direct download
+- `scripts.load_challenges` now syncs updates (existing challenges are updated, not skipped)
 
 ## Question-Based Automarking System
 
@@ -91,7 +111,7 @@ build_question(
 
 **Fields:**
 - `question_text`: The question displayed to users
-- `question_type`: UI input style (text, textarea, date_blocks)
+- `question_type`: UI input style (`text`, `textarea`, `date_blocks`, `time_blocks`, `coordinate_blocks`)
 - `required`: Whether this question must be answered
 - `points`: Points awarded for correct answer
 - `order`: Display order (1, 2, 3...)
@@ -118,12 +138,23 @@ The UI will render `YYYY - MM - DD` as three numeric boxes and submit a single f
 
 For latitude/longitude coordinates, set:
 
-- `question_type="coord_blocks"`
+- `question_type="coordinate_blocks"`
 - `expected_answer="lat,lng"` (for example `"7.488667,80.366558"`)
 - `instructions="Enter coordinates as latitude,longitude (e.g., 7.488667,80.366558)."`
 - `answer_type="exact"`
 
 The UI will render two decimal input boxes for latitude and longitude, joined by a comma on submit.
+
+### Time Block Input (Frontend)
+
+For HH:MM input in 24-hour format, set:
+
+- `question_type="time_blocks"`
+- `expected_answer="HH:MM"` (for example `"14:32"`)
+- `instructions="Enter the time as HH:MM using 24-hour format."`
+- `answer_type="exact"`
+
+The UI renders two numeric boxes (hour and minute) and submits a single `HH:MM` value.
 
 
 ### Teams API
