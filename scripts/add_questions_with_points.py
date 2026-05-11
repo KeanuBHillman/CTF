@@ -21,22 +21,42 @@ from sqlmodel import select
 
 # add the question entries here .
 CUSTOM_QUESTIONS_BY_CHALLENGE: dict[str, list[dict]] = {
-    "HOUSE RULES": [
+    "House Rules": [
         {
-            "text": "Identify the date, time and the device which the photo was taken?",
+            "text": "Identify the date the photo was taken.",
+            "type": "date_blocks",
+            "required": True,
+            "points": 75,
+            "expected_answer": "2022 - 08 - 09", #will change later to match the actual EXIF data of the photo
+            "answer_type": "exact",
+            "instructions" : "Enter the date as YYYY - MM - DD using the blocks above",
+        },
+        {
+            "text": "Identify the time the photo was taken.",
+            "type": "time_blocks",
+            "required": True,
+            "points": 75,
+            "expected_answer": "14:32", #will change later to match the actual EXIF data of the photo
+            "answer_type": "exact",
+            "instructions": "Enter the time as HH:MM using 24-hour format",
+        },
+        {
+            "text": "Identify the device used to take the photo.",
             "type": "text",
             "required": True,
-            "points": 100,
-            "expected_answer": "OPPO|2024-01-01 12:00:00", #will change later to match the actual EXIF data of the photo
+            "points": 50,
+            "expected_answer": "OPPOA4s",#will change later to match the actual EXIF data of the photo
             "answer_type": "exact",
+            "instructions": "Enter the full device model name",
         },
         {
             "text": "Find the location of the place where the photo was taken?",
-            "type": "text",
+            "type": "coordinate_blocks",
             "required": True,
-            "points": 200,
-            "expected_answer": "7°29'19.20\"N 80°21'59.61\"E", 
-            "answer_type": "partial",
+            "points": 100,
+            "expected_answer": "7.488667,80.366558", #will change later to match the actual EXIF data of the photo
+            "answer_type": "exact",
+            "instructions": "Enter coordinates as latitude,longitude using decimal degrees (for example: 7.488667,80.366558)",
         },
 
     ],
@@ -55,6 +75,7 @@ def build_question(
     answer_type: str,
     case_sensitive: bool = False,
     tolerance: float | None = None,
+    instructions: str | None = None,
 ) -> Question:
     return Question(
         challenge_id=challenge_id,
@@ -67,6 +88,7 @@ def build_question(
         answer_type=answer_type,
         case_sensitive=case_sensitive,
         tolerance=tolerance,
+        instructions=instructions,
     )
 
 
@@ -128,6 +150,7 @@ def add_custom_questions(challenge_title: str, questions_data: list, *, replace_
                 answer_type=q_data["answer_type"],
                 case_sensitive=q_data.get("case_sensitive", False),
                 tolerance=q_data.get("tolerance"),
+                instructions=q_data.get("instructions"),
             )
             session.add(question)
         
