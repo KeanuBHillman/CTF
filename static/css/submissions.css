@@ -471,6 +471,118 @@ a:hover {
     margin-left: 10px;
 }
 
+.question-instructions {
+    display: block;
+    margin-bottom: 10px;
+    font-size: clamp(12px, 1.8vw, 14px);
+    color: #a0a0a0;
+    font-style: italic;
+    background: rgba(100, 200, 100, 0.1);
+    padding: 8px 12px;
+    border-left: 3px solid #4caf50;
+    border-radius: 3px;
+}
+
+.date-block-input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.date-block-input input[type="text"] {
+    width: 80px;
+    padding: 12px;
+    font-family: "Kode Mono", monospace;
+    font-size: clamp(14px, 2vw, 16px);
+    background: #252525;
+    border: 1px solid #444;
+    border-bottom: 2px solid var(--primary-red);
+    color: #fff;
+    border-radius: 5px 5px 0 0;
+    text-align: center;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.date-block-input input[type="text"]:focus {
+    outline: none;
+    border-bottom-color: #4caf50;
+}
+
+.date-separator {
+    color: #a0a0a0;
+    font-weight: bold;
+    font-size: clamp(14px, 2vw, 16px);
+}
+
+.time-block-input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.time-block-input input[type="text"] {
+    width: 70px;
+    padding: 12px;
+    font-family: "Kode Mono", monospace;
+    font-size: clamp(14px, 2vw, 16px);
+    background: #252525;
+    border: 1px solid #444;
+    border-bottom: 2px solid var(--primary-red);
+    color: #fff;
+    border-radius: 5px 5px 0 0;
+    text-align: center;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.time-block-input input[type="text"]:focus {
+    outline: none;
+    border-bottom-color: #4caf50;
+}
+
+.time-separator {
+    color: #a0a0a0;
+    font-weight: bold;
+    font-size: clamp(14px, 2vw, 16px);
+}
+
+.coord-block-input {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.coord-block-input input[type="text"] {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px;
+    font-family: "Kode Mono", monospace;
+    font-size: clamp(14px, 2vw, 16px);
+    background: #252525;
+    border: 1px solid #444;
+    border-bottom: 2px solid var(--primary-red);
+    color: #fff;
+    border-radius: 5px 5px 0 0;
+    text-align: left;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+.coord-block-input input[type="text"]:focus {
+    outline: none;
+    border-bottom-color: #4caf50;
+}
+
+.coord-separator {
+    color: #a0a0a0;
+    font-weight: bold;
+    font-size: clamp(14px, 2vw, 16px);
+}
+
 .question-item input[type="text"],
 .question-item textarea {
     width: 100%;

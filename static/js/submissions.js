@@ -61,8 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const challengeData = challenges[index];
 
     document.getElementById("modal-title").textContent = challengeData.title;
-    document.getElementById("modal-points").textContent =
-      `${challengeData.points} points`;
+    document.getElementById("modal-points").textContent = `${challengeData.points} points`;
 
     const difficultyEl = document.getElementById("modal-difficulty");
     difficultyEl.textContent = challengeData.difficulty;
