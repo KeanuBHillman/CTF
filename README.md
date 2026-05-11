@@ -84,19 +84,47 @@ build_question(
     expected_answer="8080",
     answer_type="numeric",
     case_sensitive=False,
-    tolerance=None
+    tolerance=None,
+    instructions="Enter a 4-digit port number."
 )
 ```
 
+**Fields:**
+- `question_text`: The question displayed to users
+- `question_type`: UI input style (text, textarea, date_blocks)
+- `required`: Whether this question must be answered
+- `points`: Points awarded for correct answer
+- `order`: Display order (1, 2, 3...)
+- `expected_answer`: Correct answer
+- `answer_type`: Grading logic (exact, partial, multiple_choice, regex, numeric)
+- `case_sensitive`: Whether to ignore case differences
+- `tolerance`: For numeric answers, allow ±tolerance deviation
+- `instructions`: Optional formatting guidance shown to users
+
 Each question is graded automatically when submitted, and teams earn points immediately upon correct answers.
 
-## Endpoints
+### Block-Style Date Input (Frontend)
 
-### Frontend Pages
-- / - Team creation page
-- /join - Team join page
-- /ctf - Challenge and submission page (requires team cookies)
-- /leaderboard - Live leaderboard page
+If you want date entry in separate number blocks, set:
+
+- `question_type="date_blocks"`
+- `expected_answer="YYYY - MM - DD"` (for example `"2002 - 08 - 09"`)
+- `instructions="Enter the date as YYYY - MM - DD using the blocks above."`
+- `answer_type="exact"`
+
+The UI will render `YYYY - MM - DD` as three numeric boxes and submit a single formatted value.
+
+### Coordinate Block Input (Frontend)
+
+For latitude/longitude coordinates, set:
+
+- `question_type="coord_blocks"`
+- `expected_answer="lat,lng"` (for example `"7.488667,80.366558"`)
+- `instructions="Enter coordinates as latitude,longitude (e.g., 7.488667,80.366558)."`
+- `answer_type="exact"`
+
+The UI will render two decimal input boxes for latitude and longitude, joined by a comma on submit.
+
 
 ### Teams API
 - GET /api/teams/ - List all teams
