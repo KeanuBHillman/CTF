@@ -3,11 +3,44 @@
 import pytest
 from sqlmodel import Session
 
-from database import FlagSubmission
+from database import Challenge, ChallengeCompletion, Question, QuestionAnswer
 
 
 def _solve(session: Session, team_id: int, challenge_id: int, member_id: int):
-    session.add(FlagSubmission(team_id=team_id, challenge_id=challenge_id, member_id=member_id))
+    session.add(ChallengeCompletion(team_id=team_id, challenge_id=challenge_id, member_id=member_id))
+    session.commit()
+
+
+def _award_points(
+    session: Session,
+    *,
+    team_id: int,
+    challenge: Challenge,
+    points_awarded: int,
+    answer_text: str,
+):
+    question = Question(
+        challenge_id=challenge.id,
+        question_text=f"Scoring question ({points_awarded})",
+        question_type="text",
+        required=True,
+        points=points_awarded,
+        order=1,
+        expected_answer="ok",
+        answer_type="exact",
+        case_sensitive=False,
+    )
+    session.add(question)
+    session.flush()
+
+    session.add(
+        QuestionAnswer(
+            team_id=team_id,
+            question_id=question.id,
+            answer_text=answer_text,
+            points_awarded=points_awarded,
+        )
+    )
     session.commit()
 
 
@@ -19,11 +52,11 @@ class TestLeaderboard:
             assert entry["points"] == 0
 
     def test_sorted_descending_by_points(self, client, session, team_alpha, team_beta, challenge_easy, challenge_hard):
-        team_a, member_a = team_alpha
-        team_b, member_b = team_beta
-        # Alpha solves hard (500 pts), Beta solves easy (50 pts)
-        _solve(session, team_a.id, challenge_hard.id, member_a.id)
-        _solve(session, team_b.id, challenge_easy.id, member_b.id)
+        team_a, _ = team_alpha
+        team_b, _ = team_beta
+        # Alpha earns 500 pts, Beta earns 50 pts
+        _award_points(session, team_id=team_a.id, challenge=challenge_hard, points_awarded=500, answer_text="a")
+        _award_points(session, team_id=team_b.id, challenge=challenge_easy, points_awarded=50, answer_text="b")
 
         r = client.get("/api/leaderboard/")
         entries = r.json()
@@ -33,29 +66,29 @@ class TestLeaderboard:
         assert entries[1]["points"] == 50
 
     def test_positions_sequential(self, client, session, team_alpha, team_beta, challenge_easy, challenge_hard):
-        team_a, member_a = team_alpha
-        team_b, member_b = team_beta
-        _solve(session, team_a.id, challenge_hard.id, member_a.id)
+        team_a, _ = team_alpha
+        team_b, _ = team_beta
+        _award_points(session, team_id=team_a.id, challenge=challenge_hard, points_awarded=500, answer_text="a")
 
         r = client.get("/api/leaderboard/")
         positions = [e["position"] for e in r.json()]
         assert positions[0] == 1  # Alpha — most points
 
     def test_tied_teams_share_position(self, client, session, team_alpha, team_beta, challenge_easy):
-        team_a, member_a = team_alpha
-        team_b, member_b = team_beta
-        # Both teams solve the same challenge → same points
-        _solve(session, team_a.id, challenge_easy.id, member_a.id)
-        _solve(session, team_b.id, challenge_easy.id, member_b.id)
+        team_a, _ = team_alpha
+        team_b, _ = team_beta
+        # Both teams earn the same points
+        _award_points(session, team_id=team_a.id, challenge=challenge_easy, points_awarded=50, answer_text="a")
+        _award_points(session, team_id=team_b.id, challenge=challenge_easy, points_awarded=50, answer_text="b")
 
         r = client.get("/api/leaderboard/")
         positions = {e["position"] for e in r.json()}
         assert positions == {1}  # both share position 1
 
     def test_accumulated_points(self, client, session, team_alpha, challenge_easy, challenge_hard):
-        team_a, member_a = team_alpha
-        _solve(session, team_a.id, challenge_easy.id, member_a.id)
-        _solve(session, team_a.id, challenge_hard.id, member_a.id)
+        team_a, _ = team_alpha
+        _award_points(session, team_id=team_a.id, challenge=challenge_easy, points_awarded=50, answer_text="a")
+        _award_points(session, team_id=team_a.id, challenge=challenge_hard, points_awarded=500, answer_text="b")
 
         r = client.get("/api/leaderboard/")
         alpha = next(e for e in r.json() if e["team_name"] == "Alpha")

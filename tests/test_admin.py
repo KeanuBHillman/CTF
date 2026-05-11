@@ -1,9 +1,8 @@
 """Tests for /api/admin/* and /api/countdown/* endpoints."""
 
-import pytest
-from sqlmodel import Session, select
+from sqlmodel import select
 
-from database import FlagSubmission, Member, Team
+from database import ChallengeCompletion
 
 
 class TestAdminTeams:
@@ -26,56 +25,56 @@ class TestAdminTeams:
 
     def test_delete_removes_submissions(self, client, session, team_alpha, challenge_easy):
         team, member = team_alpha
-        session.add(FlagSubmission(team_id=team.id, challenge_id=challenge_easy.id, member_id=member.id))
+        session.add(ChallengeCompletion(team_id=team.id, challenge_id=challenge_easy.id, member_id=member.id))
         session.commit()
 
         client.delete(f"/api/admin/teams/{team.id}")
 
-        remaining = session.exec(select(FlagSubmission).where(FlagSubmission.team_id == team.id)).all()
+        remaining = session.exec(select(ChallengeCompletion).where(ChallengeCompletion.team_id == team.id)).all()
         assert remaining == []
 
 
-class TestAdminFlags:
+class TestAdminCompletions:
     def test_list_challenges_includes_flag(self, client, challenge_easy):
         r = client.get("/api/admin/challenges")
         assert r.status_code == 200
         c = next(x for x in r.json() if x["id"] == challenge_easy.id)
         assert c["flag"] == "CTF{easy}"
 
-    def test_add_flag_to_team(self, client, team_alpha, challenge_easy):
+    def test_add_completion_to_team(self, client, team_alpha, challenge_easy):
         team, _ = team_alpha
         r = client.post(
-            "/api/admin/flags/modify",
+            "/api/admin/completions/modify",
             json={"team_id": team.id, "challenge_id": challenge_easy.id, "action": "add"},
         )
         assert r.status_code == 200
 
-    def test_add_duplicate_flag_returns_400(self, client, session, team_alpha, challenge_easy):
+    def test_add_duplicate_completion_returns_400(self, client, session, team_alpha, challenge_easy):
         team, member = team_alpha
-        session.add(FlagSubmission(team_id=team.id, challenge_id=challenge_easy.id, member_id=member.id))
+        session.add(ChallengeCompletion(team_id=team.id, challenge_id=challenge_easy.id, member_id=member.id))
         session.commit()
 
         r = client.post(
-            "/api/admin/flags/modify",
+            "/api/admin/completions/modify",
             json={"team_id": team.id, "challenge_id": challenge_easy.id, "action": "add"},
         )
         assert r.status_code == 400
 
-    def test_remove_flag_from_team(self, client, session, team_alpha, challenge_easy):
+    def test_remove_completion_from_team(self, client, session, team_alpha, challenge_easy):
         team, member = team_alpha
-        session.add(FlagSubmission(team_id=team.id, challenge_id=challenge_easy.id, member_id=member.id))
+        session.add(ChallengeCompletion(team_id=team.id, challenge_id=challenge_easy.id, member_id=member.id))
         session.commit()
 
         r = client.post(
-            "/api/admin/flags/modify",
+            "/api/admin/completions/modify",
             json={"team_id": team.id, "challenge_id": challenge_easy.id, "action": "remove"},
         )
         assert r.status_code == 200
 
-    def test_remove_missing_flag_returns_400(self, client, team_alpha, challenge_easy):
+    def test_remove_missing_completion_returns_400(self, client, team_alpha, challenge_easy):
         team, _ = team_alpha
         r = client.post(
-            "/api/admin/flags/modify",
+            "/api/admin/completions/modify",
             json={"team_id": team.id, "challenge_id": challenge_easy.id, "action": "remove"},
         )
         assert r.status_code == 400
@@ -83,14 +82,14 @@ class TestAdminFlags:
     def test_invalid_action_returns_400(self, client, team_alpha, challenge_easy):
         team, _ = team_alpha
         r = client.post(
-            "/api/admin/flags/modify",
+            "/api/admin/completions/modify",
             json={"team_id": team.id, "challenge_id": challenge_easy.id, "action": "explode"},
         )
         assert r.status_code == 400
 
     def test_unknown_team_returns_404(self, client, challenge_easy):
         r = client.post(
-            "/api/admin/flags/modify",
+            "/api/admin/completions/modify",
             json={"team_id": 99999, "challenge_id": challenge_easy.id, "action": "add"},
         )
         assert r.status_code == 404
@@ -98,7 +97,7 @@ class TestAdminFlags:
     def test_unknown_challenge_returns_404(self, client, team_alpha):
         team, _ = team_alpha
         r = client.post(
-            "/api/admin/flags/modify",
+            "/api/admin/completions/modify",
             json={"team_id": team.id, "challenge_id": 99999, "action": "add"},
         )
         assert r.status_code == 404

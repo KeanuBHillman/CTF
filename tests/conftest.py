@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, StaticPool, create_engine
 
 from app.main import app
-from database import Challenge, CtfDB, FlagSubmission, Member, Team
+from database import Challenge, ChallengeCompletion, CtfDB, Member, Team
 from database.db import get_session
 
 

@@ -1,10 +1,10 @@
-"""Tests for GET /api/challenges/ and POST /api/challenges/submit."""
+"""Tests for challenge listing and question submission endpoints."""
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app import countdown
-from database import FlagSubmission
+from database import ChallengeCompletion, Question
 from sqlmodel import Session
 
 
@@ -30,7 +30,7 @@ class TestListChallenges:
         self, client, session, auth_alpha, team_alpha, challenge_easy
     ):
         team, member = team_alpha
-        session.add(FlagSubmission(challenge_id=challenge_easy.id, team_id=team.id, member_id=member.id))
+        session.add(ChallengeCompletion(challenge_id=challenge_easy.id, team_id=team.id, member_id=member.id))
         session.commit()
 
         r = client.get("/api/challenges/", cookies=auth_alpha)
@@ -49,69 +49,98 @@ class TestListChallenges:
 
 
 class TestSubmitFlag:
-    def test_correct_flag_accepted(self, client, auth_alpha, challenge_easy):
+    @staticmethod
+    def _add_question(session: Session, challenge_id: int, *, points: int = 50) -> Question:
+        question = Question(
+            challenge_id=challenge_id,
+            question_text="What port is the service running on?",
+            question_type="text",
+            required=True,
+            points=points,
+            order=1,
+            expected_answer="8080",
+            answer_type="exact",
+            case_sensitive=False,
+        )
+        session.add(question)
+        session.commit()
+        session.refresh(question)
+        return question
+
+    def test_correct_answer_accepted(self, client, session, auth_alpha, challenge_easy):
+        question = self._add_question(session, challenge_easy.id, points=50)
         r = client.post(
-            "/api/challenges/submit",
-            json={"challenge_id": challenge_easy.id, "flag": "CTF{easy}"},
+            f"/api/challenges/{challenge_easy.id}/submit-questions",
+            json={"answers": {question.id: "8080"}},
             cookies=auth_alpha,
         )
         assert r.status_code == 200
         body = r.json()
-        assert body["success"] is True
-        assert body["points_awarded"] == 50
+        assert body["total_points_earned"] == 50
+        assert body["questions_answered"] == 1
+        assert body["automarking_enabled"] is True
 
-    def test_wrong_flag_rejected(self, client, auth_alpha, challenge_easy):
+    def test_wrong_answer_gets_zero_points(self, client, session, auth_alpha, challenge_easy):
+        question = self._add_question(session, challenge_easy.id, points=50)
         r = client.post(
-            "/api/challenges/submit",
-            json={"challenge_id": challenge_easy.id, "flag": "CTF{wrong}"},
+            f"/api/challenges/{challenge_easy.id}/submit-questions",
+            json={"answers": {question.id: "9999"}},
             cookies=auth_alpha,
         )
+        body = r.json()
         assert r.status_code == 200
-        assert r.json()["success"] is False
+        assert body["total_points_earned"] == 0
+        assert body["questions_answered"] == 0
 
-    def test_duplicate_submission(self, client, auth_alpha, challenge_easy):
-        payload = {"challenge_id": challenge_easy.id, "flag": "CTF{easy}"}
-        client.post("/api/challenges/submit", json=payload, cookies=auth_alpha)
-        r = client.post("/api/challenges/submit", json=payload, cookies=auth_alpha)
-        assert r.json()["already_submitted"] is True
-        assert r.json()["success"] is False
+    def test_duplicate_challenge_submission_returns_403(self, client, session, auth_alpha, challenge_easy):
+        question = self._add_question(session, challenge_easy.id, points=50)
+        payload = {"answers": {question.id: "8080"}}
+        r1 = client.post(f"/api/challenges/{challenge_easy.id}/submit-questions", json=payload, cookies=auth_alpha)
+        r2 = client.post(f"/api/challenges/{challenge_easy.id}/submit-questions", json=payload, cookies=auth_alpha)
+        assert r1.status_code == 200
+        assert r2.status_code == 403
 
     def test_unauthenticated_returns_401(self, client, challenge_easy):
         r = client.post(
-            "/api/challenges/submit",
-            json={"challenge_id": challenge_easy.id, "flag": "CTF{easy}"},
+            f"/api/challenges/{challenge_easy.id}/submit-questions",
+            json={"answers": {}},
         )
         assert r.status_code == 401
 
     def test_unknown_challenge_returns_404(self, client, auth_alpha):
         r = client.post(
-            "/api/challenges/submit",
-            json={"challenge_id": 9999, "flag": "CTF{x}"},
+            "/api/challenges/9999/submit-questions",
+            json={"answers": {}},
             cookies=auth_alpha,
         )
         assert r.status_code == 404
 
-    def test_competition_ended_returns_403(self, client, auth_alpha, challenge_easy, monkeypatch):
+    def test_competition_ended_returns_403(self, client, session, auth_alpha, challenge_easy, monkeypatch):
+        question = self._add_question(session, challenge_easy.id, points=50)
         monkeypatch.setattr(countdown, "is_active", lambda: False)
         r = client.post(
-            "/api/challenges/submit",
-            json={"challenge_id": challenge_easy.id, "flag": "CTF{easy}"},
+            f"/api/challenges/{challenge_easy.id}/submit-questions",
+            json={"answers": {question.id: "8080"}},
             cookies=auth_alpha,
         )
         assert r.status_code == 403
 
-    def test_different_teams_can_both_solve(
-        self, client, auth_alpha, auth_beta, challenge_easy, team_alpha, team_beta
+    def test_different_teams_can_both_complete_same_challenge(
+        self, client, session, auth_alpha, auth_beta, challenge_easy, team_alpha, team_beta
     ):
+        question = self._add_question(session, challenge_easy.id, points=50)
+        payload = {"answers": {question.id: "8080"}}
         r1 = client.post(
-            "/api/challenges/submit",
-            json={"challenge_id": challenge_easy.id, "flag": "CTF{easy}"},
+            f"/api/challenges/{challenge_easy.id}/submit-questions",
+            json=payload,
             cookies=auth_alpha,
         )
         r2 = client.post(
-            "/api/challenges/submit",
-            json={"challenge_id": challenge_easy.id, "flag": "CTF{easy}"},
+            f"/api/challenges/{challenge_easy.id}/submit-questions",
+            json=payload,
             cookies=auth_beta,
         )
-        assert r1.json()["success"] is True
-        assert r2.json()["success"] is True
+        assert r1.status_code == 200
+        assert r2.status_code == 200
+        assert r1.json()["total_points_earned"] == 50
+        assert r2.json()["total_points_earned"] == 50
