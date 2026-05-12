@@ -128,6 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let challengeData = null;
   let questions = [];
+  let responseHideTimer = null;
 
   // Load challenge data
   fetch(`/api/challenges/`)
@@ -342,22 +343,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await res.json();
       
       if (res.status === 200) {
-        // Show points breakdown
-        let message = `Submission complete!\n`;
-        message += `Points earned: ${result.total_points_earned}\n`;
-        message += `Questions answered: ${result.questions_answered}\n\n`;
-        
-        if (result.breakdown && result.breakdown.length > 0) {
-          message += "Breakdown:\n";
-          result.breakdown.forEach(item => {
-            const status = item.status === "new" ? " NEW" : 
-                          item.status === "already_answered" ? " ALREADY ANSWERED" :
-                          item.status === "not_answered" ? " NOT ANSWERED" : " REQUIRED MISSING";
-            message += `• ${item.points_awarded} pts - ${status}\n`;
-          });
-        }
-        
-        showResponse(message, "success");
+        showResponse(
+          {
+            title: "Submission complete!",
+            summary: [
+              `Points earned: ${result.total_points_earned}`,
+              `Questions answered: ${result.questions_answered}`,
+            ],
+            breakdown: result.breakdown || [],
+          },
+          "success"
+        );
         
         // Clear form after successful submission
         questions.forEach(q => {
@@ -392,14 +388,73 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function showResponse(message, type) {
-    responseText.textContent = message;
+    if (responseHideTimer) {
+      clearTimeout(responseHideTimer);
+      responseHideTimer = null;
+    }
+
+    if (typeof message === "object" && message !== null) {
+      const summaryHtml = Array.isArray(message.summary)
+        ? message.summary.map((line) => `<div>${line}</div>`).join("")
+        : "";
+
+      const breakdownHtml = Array.isArray(message.breakdown) && message.breakdown.length
+        ? `
+          <div class="response-breakdown">
+            <div class="response-breakdown-label">Breakdown</div>
+            ${message.breakdown
+              .map((item) => {
+                const statusText = String(item.status || "unknown").replace(/_/g, " ");
+                const statusClass = item.points_awarded > 0 ? "is-correct" : "is-incorrect";
+                return `
+                  <div class="response-breakdown-item ${statusClass}">
+                    <div class="response-breakdown-text">
+                      <div class="response-breakdown-question">${item.question_text}</div>
+                      <div class="response-breakdown-status">${statusText}</div>
+                    </div>
+                    <div class="response-points">${item.points_awarded}/${item.max_points}</div>
+                  </div>
+                `;
+              })
+              .join("")}
+          </div>
+        `
+        : "";
+
+      responseText.innerHTML = `
+        <div class="response-card">
+          <div class="response-header">
+            <div class="response-badge">${type === "success" ? "Success" : "Error"}</div>
+            <div class="response-title">${message.title || (type === "success" ? "Submission complete!" : "Something went wrong")}</div>
+          </div>
+          ${summaryHtml ? `<div class="response-body">${summaryHtml}</div>` : ""}
+          ${breakdownHtml}
+        </div>
+      `;
+    } else {
+      const lines = String(message).split("\n");
+      const title = type === "success" ? (lines[0] || "Success") : (lines[0] || "Something went wrong");
+      const bodyLines = lines.slice(1);
+      const bodyHtml = bodyLines
+        .filter((line) => line.trim())
+        .map((line) => `<div>${line}</div>`)
+        .join("");
+
+      responseText.innerHTML = `
+        <div class="response-card">
+          <div class="response-header">
+            <div class="response-badge">${type === "success" ? "Success" : "Error"}</div>
+            <div class="response-title">${title}</div>
+          </div>
+          ${bodyHtml ? `<div class="response-body">${bodyHtml}</div>` : ""}
+        </div>
+      `;
+    }
     responseBox.className = `response-box response-${type}`;
     responseBox.style.display = "flex";
     
-    // Hide after 5 seconds
-    setTimeout(() => {
-      responseBox.style.display = "none";
-    }, 5000);
+    
+  
   }
 });
 

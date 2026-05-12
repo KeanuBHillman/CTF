@@ -353,29 +353,149 @@ a:hover {
 /* === Response Box (Error/Success) === */
 .response-box {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0 21px;
-    gap: 10px;
-
+    justify-content: flex-start;
+    align-items: stretch;
     width: 100%;
-    max-width: 646px;
-    min-height: 53px;
-
+    max-width: 760px;
     box-sizing: border-box;
-
-    box-shadow: 2px 6px 4px rgba(0, 0, 0, 0.25);
-    border-radius: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .response-text {
     font-family: "Kode Mono", monospace;
-    font-weight: 600;
-    line-height: 22px;
+    font-weight: 500;
+    line-height: 1.6;
     color: #fff;
-    text-align: center;
+    width: 100%;
+    padding: 18px 22px;
+    display: block;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.response-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
     width: 100%;
 }
+
+.response-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.response-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.response-title {
+    font-size: clamp(18px, 2vw, 22px);
+    font-weight: 700;
+}
+
+.response-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    opacity: 0.95;
+}
+
+.response-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.response-breakdown-label {
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.response-breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.response-breakdown-item.is-correct {
+    border: 1px solid rgba(76, 175, 80, 0.28);
+}
+
+.response-breakdown-item.is-incorrect {
+    border: 1px solid rgba(255, 46, 46, 0.22);
+}
+
+.response-breakdown-text {
+    flex: 1;
+    font-size: 14px;
+}
+
+.response-breakdown-question {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.response-breakdown-status {
+    font-size: 12px;
+    opacity: 0.75;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.response-points {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.response-success .response-badge {
+    background: rgba(76, 175, 80, 0.22);
+    color: #9ff0a3;
+}
+
+.response-success .response-title {
+    color: #bdf7bf;
+}
+
+.response-success .response-points {
+    background: rgba(76, 175, 80, 0.22);
+}
+
+.response-error .response-badge {
+    background: rgba(255, 46, 46, 0.22);
+    color: #ffb0b0;
+}
+
+.response-error .response-title {
+    color: #ffd0d0;
+}
+
 
 /* States */
 .response-error {

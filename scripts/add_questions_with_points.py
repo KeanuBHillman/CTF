@@ -56,7 +56,7 @@ CUSTOM_QUESTIONS_BY_CHALLENGE: dict[str, list[dict]] = {
             "points": 150,
             "expected_answer": "7.488667,80.366558", #will change later to match the actual EXIF data of the photo
             "answer_type": "exact",
-            "instructions": "Enter coordinates as latitude,longitude using decimal degrees (for example: 7.488667,80.366558)",
+            "instructions": "Enter coordinates as latitude,longitude using decimal degrees upto 6 decimal points (for example: 9.486667,75.364258)",
         },
 
 
