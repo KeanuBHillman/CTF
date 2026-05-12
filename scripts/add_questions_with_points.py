@@ -21,13 +21,13 @@ from sqlmodel import select
 
 # add the question entries here .
 CUSTOM_QUESTIONS_BY_CHALLENGE: dict[str, list[dict]] = {
-    "House Rules": [
+    "Challenge 5": [
         {
-            "text": "Identify the date the photo was taken.",
+            "text": "Identify the exact date the photo was taken.",
             "type": "date_blocks",
             "required": True,
-            "points": 75,
-            "expected_answer": "2022 - 08 - 09", #will change later to match the actual EXIF data of the photo
+            "points": 50,
+            "expected_answer": "2020 - 10 - 12", #will change later to match the actual EXIF data of the photo
             "answer_type": "exact",
             "instructions" : "Enter the date as YYYY - MM - DD using the blocks above",
         },
@@ -35,8 +35,8 @@ CUSTOM_QUESTIONS_BY_CHALLENGE: dict[str, list[dict]] = {
             "text": "Identify the time the photo was taken.",
             "type": "time_blocks",
             "required": True,
-            "points": 75,
-            "expected_answer": "14:32", #will change later to match the actual EXIF data of the photo
+            "points": 50,
+            "expected_answer": "13:54", #will change later to match the actual EXIF data of the photo
             "answer_type": "exact",
             "instructions": "Enter the time as HH:MM using 24-hour format",
         },
@@ -45,19 +45,69 @@ CUSTOM_QUESTIONS_BY_CHALLENGE: dict[str, list[dict]] = {
             "type": "text",
             "required": True,
             "points": 50,
-            "expected_answer": "OPPOA4s",#will change later to match the actual EXIF data of the photo
-            "answer_type": "exact",
+            "expected_answer": "OPPOA5",
+            "answer_type": "partial", #accepts partial matches, so "OPPOA5" would be correct for "OPPOA5s"
             "instructions": "Enter the full device model name",
         },
         {
-            "text": "Find the location of the place where the photo was taken?",
+            "text": "Find the exact coordinates of the place where the photo was taken?",
             "type": "coordinate_blocks",
             "required": True,
-            "points": 100,
+            "points": 150,
             "expected_answer": "7.488667,80.366558", #will change later to match the actual EXIF data of the photo
             "answer_type": "exact",
             "instructions": "Enter coordinates as latitude,longitude using decimal degrees (for example: 7.488667,80.366558)",
         },
+
+
+    ],
+
+        "Challenge 6": [
+
+        {
+            "text": "Identify the software used to create the PDF.",
+            "type": "text",
+            "required": True,
+            "points": 50,
+            "expected_answer": "Microsoft Word", 
+            "answer_type": "partial", #accepts partial matches, so "Microsoft Word" would be correct for "Microsoft Word for Microsoft 365"
+            "instructions": "Enter the full software name",
+        },
+
+        {
+            "text": "Identify the exact creation date of the PDF.",
+            "type": "date_blocks",
+            "required": True,
+            "points": 50,
+            "expected_answer": "2026 - 04 - 21", 
+            "answer_type": "exact",
+            "instructions" : "Enter the date as YYYY - MM - DD using the blocks above",
+        },
+        {
+            "text": "Identify the exact creation time of the PDF.",
+            "type": "time_blocks",
+            "required": True,
+            "points": 50,
+            "expected_answer": "14:00", 
+            "answer_type": "exact",
+            "instructions": "Enter the time as HH:MM using 24-hour format",
+        },
+
+        {
+            "text": "Using the business details found in the pdf: Does the NGO appear to be real?(Yes/No) ",
+            "type": "single_select",
+            "required": True,
+            "points": 50,
+            "expected_answer": "Yes", 
+            "answer_type": "multiple_choice",
+            "options": ["Yes", "No"],
+            "instructions": "Select whether the NGO appears genuine based on your findings.",
+        },
+
+        
+
+        
+        
 
     ],
 }
@@ -73,6 +123,7 @@ def build_question(
     order: int,
     expected_answer: str,
     answer_type: str,
+    options: list[str] | None = None,
     case_sensitive: bool = False,
     tolerance: float | None = None,
     instructions: str | None = None,
@@ -86,6 +137,7 @@ def build_question(
         order=order,
         expected_answer=expected_answer,
         answer_type=answer_type,
+        options=options,
         case_sensitive=case_sensitive,
         tolerance=tolerance,
         instructions=instructions,
@@ -148,6 +200,7 @@ def add_custom_questions(challenge_title: str, questions_data: list, *, replace_
                 order=i,
                 expected_answer=q_data["expected_answer"],
                 answer_type=q_data["answer_type"],
+                options=q_data.get("options"),
                 case_sensitive=q_data.get("case_sensitive", False),
                 tolerance=q_data.get("tolerance"),
                 instructions=q_data.get("instructions"),

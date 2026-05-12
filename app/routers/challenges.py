@@ -204,6 +204,7 @@ def get_challenge_questions(
             points=q.points,
             order=q.order,
             answer_type=q.answer_type,
+            options=q.options,
         )
         for q in questions
     ]

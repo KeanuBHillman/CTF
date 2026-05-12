@@ -50,7 +50,15 @@ class TestListChallenges:
 
 class TestSubmitFlag:
     @staticmethod
-    def _add_question(session: Session, challenge_id: int, *, points: int = 50) -> Question:
+    def _add_question(
+        session: Session,
+        challenge_id: int,
+        *,
+        points: int = 50,
+        expected_answer: str = "8080",
+        answer_type: str = "exact",
+        case_sensitive: bool = False,
+    ) -> Question:
         question = Question(
             challenge_id=challenge_id,
             question_text="What port is the service running on?",
@@ -58,14 +66,34 @@ class TestSubmitFlag:
             required=True,
             points=points,
             order=1,
-            expected_answer="8080",
-            answer_type="exact",
-            case_sensitive=False,
+            expected_answer=expected_answer,
+            answer_type=answer_type,
+            case_sensitive=case_sensitive,
         )
         session.add(question)
         session.commit()
         session.refresh(question)
         return question
+
+    def test_multiple_choice_answer_accepted(self, client, session, auth_alpha, challenge_easy):
+        question = self._add_question(
+            session,
+            challenge_easy.id,
+            points=30,
+            expected_answer="yes|no",
+            answer_type="multiple_choice",
+            case_sensitive=False,
+        )
+        r = client.post(
+            f"/api/challenges/{challenge_easy.id}/submit-questions",
+            json={"answers": {question.id: "Yes"}},
+            cookies=auth_alpha,
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["total_points_earned"] == 30
+        assert body["questions_answered"] == 1
+        assert body["breakdown"][0]["status"] == "correct"
 
     def test_correct_answer_accepted(self, client, session, auth_alpha, challenge_easy):
         question = self._add_question(session, challenge_easy.id, points=50)

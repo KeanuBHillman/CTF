@@ -196,7 +196,18 @@ document.addEventListener("DOMContentLoaded", () => {
     questionsList.innerHTML = questions.map((q, index) => {
       let inputHtml = "";
 
-      if (q.question_type === 'textarea') {
+      if (q.question_type === 'single_select' || (q.answer_type === 'multiple_choice' && Array.isArray(q.options) && q.options.length > 0)) {
+        const optionTags = q.options
+          .map(option => `<option value="${option}">${option}</option>`)
+          .join('');
+
+        inputHtml = `
+          <select id="question-${q.id}">
+            <option value="">Select an option...</option>
+            ${optionTags}
+          </select>
+        `;
+      } else if (q.question_type === 'textarea') {
         inputHtml = `<textarea id="question-${q.id}" rows="4" placeholder="Your answer..."></textarea>`;
       } else if (q.question_type === 'date_blocks') {
         inputHtml = `

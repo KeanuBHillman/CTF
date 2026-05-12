@@ -6,11 +6,11 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import model_validator
-from sqlalchemy import event
+from sqlalchemy import JSON, Column, event
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
 
 
-VALID_ANSWER_TYPES = {"exact", "partial", "multiple_choice", "regex", "numeric"}
+VALID_ANSWER_TYPES = {"exact", "partial", "multiple_choice", "regex", "numeric", "date"}
 
 # question validation
 def validate_question_automarking_config(question: "Question") -> "Question":
@@ -27,6 +27,23 @@ def validate_question_automarking_config(question: "Question") -> "Question":
 
     if question.answer_type != "numeric" and question.tolerance is not None:
         raise ValueError("Tolerance can only be set for numeric questions.")
+
+    if question.options is not None:
+        cleaned_options = [opt.strip() for opt in question.options if opt and opt.strip()]
+        if not cleaned_options:
+            raise ValueError("Question options must contain at least one non-empty value.")
+        question.options = cleaned_options
+
+    if question.question_type == "single_select":
+        if not question.options or len(question.options) < 2:
+            raise ValueError("single_select questions must define at least two options.")
+
+    if question.answer_type == "multiple_choice" and question.options and not question.case_sensitive:
+        expected_values = [value.strip().lower() for value in question.expected_answer.split("|")]
+        option_values = [value.lower() for value in question.options]
+        missing_values = [value for value in expected_values if value and value not in option_values]
+        if missing_values:
+            raise ValueError("expected_answer values must be present in options for multiple_choice questions.")
 
     return question
 
@@ -107,11 +124,16 @@ class Question(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     challenge_id: int = Field(foreign_key="challenge.id", description="Which challenge this question belongs to")
     question_text: str = Field(description="The question to ask")
-    question_type: str = Field(default="text", description="Type: 'text', 'textarea', 'date_blocks', 'time_blocks', or 'coordinate_blocks'")
+    question_type: str = Field(default="text", description="Type: 'text', 'textarea', 'date_blocks', 'time_blocks', 'coordinate_blocks', or 'single_select'")
     instructions: Optional[str] = Field(default=None, description="Optional formatting instructions shown to users")
     required: bool = Field(default=True, description="Is this question required?")
     points: int = Field(default=10, description="Points awarded for answering this question")
     order: int = Field(default=1, description="Display order (1, 2, 3...)")
+    options: Optional[list[str]] = Field(
+        default=None,
+        sa_column=Column(JSON, nullable=True),
+        description="Selectable options for questions such as single_select",
+    )
     
     # Automarking fields
     expected_answer: Optional[str] = Field(default=None, description="Expected answer for auto-marking")
@@ -147,6 +169,7 @@ class QuestionPublic(SQLModel):
     points: int
     order: int
     answer_type: str
+    options: Optional[list[str]] = None
 
 
 class QuestionAnswer(SQLModel, table=True):

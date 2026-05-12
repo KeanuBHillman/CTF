@@ -584,7 +584,8 @@ a:hover {
 }
 
 .question-item input[type="text"],
-.question-item textarea {
+.question-item textarea,
+.question-item select {
     width: 100%;
     padding: 15px;
     font-family: "Kode Mono", monospace;
@@ -599,7 +600,8 @@ a:hover {
 }
 
 .question-item input[type="text"]:focus,
-.question-item textarea:focus {
+.question-item textarea:focus,
+.question-item select:focus {
     outline: none;
     border-bottom-color: #4caf50;
 }
