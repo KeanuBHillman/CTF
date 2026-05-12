@@ -26,6 +26,40 @@ body {
     overflow: hidden;
 }
 
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.section-header h3 {
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+    text-decoration: none;
+    font-size: 0.5em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    margin-top: 20px;
+}
+
+.back-link:hover {
+    background: var(--primary-color);
+    color: #0d0d0d;
+}
+
 /* Header styles */
 h3 {
     text-align: left;

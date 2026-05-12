@@ -6,35 +6,9 @@ const leaderboardIndexToScoreElement = new Map();
 const leaderboardIndexToPositionElement = new Map();
 const flagIndexToStatusElement = new Map();
 
-let currentEpoch = null;
-
 document.addEventListener("DOMContentLoaded", function () {
   const leaderboardContainer = document.getElementById("leaderboard-container");
   const flagStatusContainer = document.getElementById("flag-status-container");
-  const countdownElement = document.getElementById("countdown");
-
-  function formatTime(seconds) {
-    if (seconds < 0) return "00:00:00";
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    return `${hours
-      .toString()
-      .padStart(
-        2,
-        "0",
-      )}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  }
-
-  function updateCountdown() {
-    if (currentEpoch === null) return;
-
-    const now = Math.floor(Date.now() / 1000);
-    const remaining = currentEpoch - now;
-    countdownElement.textContent = formatTime(remaining);
-  }
 
   function getPlaceString(place) {
     if (place % 10 === 1 && place % 100 !== 11) {
@@ -241,15 +215,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     updateFlagStatus(newFlagStatusData);
   }
-  async function updateTime() {
-    const epochResponse = await fetch("/api/countdown/");
-    const epochData = await epochResponse.json();
-
-    currentEpoch = epochData.epoch;
-  }
   updateData();
-  updateTime();
   setInterval(updateData, 5000);
-  setInterval(updateTime, 30000);
-  setInterval(updateCountdown, 1000);
 });

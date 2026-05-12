@@ -1,5 +1,5 @@
 """
-Leaderboard and first-blood (first-submission) endpoints.
+Leaderboard and first-blood (first-completion) endpoints.
 """
 
 from fastapi import APIRouter, Depends
@@ -52,7 +52,7 @@ def get_leaderboard(session: Session = Depends(get_session)):
     response_model=list[FirstBloodEntry],
     summary="First-blood tracker",
     description=(
-        "For each challenge, returns which team was *first* to submit the correct flag. "
+        "For each challenge, returns which team was *first* to complete it. "
         "`team_name` is `null` if no team has solved the challenge yet."
     ),
 )
