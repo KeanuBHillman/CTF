@@ -1,0 +1,13 @@
+title: Challenge 2
+points: 300
+difficulty: Medium
+description: |
+ A set of images has been extracted from a suspect's device. The images vary in quality, and some may have been altered or degraded.
+ Your task is to analyse all available evidence, including visual details, metadata, and any versioning artefacts. <br><br>
+ The primary objective is to determine the original text displayed on the bench in Image 1. This image appears to have been deliberately edited, and you must reconstruct the missing wording as accurately as possible using evidence from other pieces of evidence provided.<br><br>
+  Download image 1: <a href="/challenges/files/Challenge 2/image1.jpg" target="_blank">image1.jpg</a><br>
+  Download image 2: <a href="/challenges/files/Challenge 2/image2.jpeg" target="_blank">image2.jpeg</a><br>
+  Download image 3: <a href="/challenges/files/Challenge 2/image3.jpeg" target="_blank">image3.jpeg</a><br>
+  Download image 4: <a href="/challenges/files/Challenge 2/image4.jpeg" target="_blank">image4.jpeg</a><br>
+  Download image 5: <a href="/challenges/files/Challenge 2/image5.jpeg" target="_blank">image5.jpeg</a><br>
+  

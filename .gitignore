@@ -14,3 +14,6 @@ ctf.log
 
 # Local SQLite database
 ctf.db
+
+# Readme files
+README.pdf
