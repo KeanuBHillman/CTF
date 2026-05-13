@@ -47,6 +47,40 @@ def client_fixture(engine):
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(name="client_alpha")
+def client_alpha_fixture(engine, team_alpha):
+    """TestClient pre-authenticated as team Alpha / member s1111111."""
+    team, member = team_alpha
+
+    def _get_session_override():
+        with Session(engine) as s:
+            yield s
+
+    app.dependency_overrides[get_session] = _get_session_override
+    with TestClient(app, raise_server_exceptions=True) as c:
+        c.cookies.set("team_name", team.name)
+        c.cookies.set("member_name", member.name)
+        yield c
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="client_beta")
+def client_beta_fixture(engine, team_beta):
+    """TestClient pre-authenticated as team Beta / member s2222222."""
+    team, member = team_beta
+
+    def _get_session_override():
+        with Session(engine) as s:
+            yield s
+
+    app.dependency_overrides[get_session] = _get_session_override
+    with TestClient(app, raise_server_exceptions=True) as c:
+        c.cookies.set("team_name", team.name)
+        c.cookies.set("member_name", member.name)
+        yield c
+    app.dependency_overrides.clear()
+
+
 # ─── Seed helpers ─────────────────────────────────────────────────────────────
 
 
@@ -80,7 +114,7 @@ def team_beta_fixture(session):
 
 @pytest.fixture(name="challenge_easy")
 def challenge_easy_fixture(session):
-    c = Challenge(title="Easy One", points=50, difficulty="easy", description="Find it.", flag="CTF{easy}")
+    c = Challenge(title="Easy One", points=50, difficulty="easy", description="Find it.")
     session.add(c)
     session.commit()
     session.refresh(c)
@@ -89,7 +123,7 @@ def challenge_easy_fixture(session):
 
 @pytest.fixture(name="challenge_hard")
 def challenge_hard_fixture(session):
-    c = Challenge(title="Hard One", points=500, difficulty="hard", description="Good luck.", flag="CTF{hard}")
+    c = Challenge(title="Hard One", points=500, difficulty="hard", description="Good luck.")
     session.add(c)
     session.commit()
     session.refresh(c)

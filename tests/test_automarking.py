@@ -256,6 +256,64 @@ class TestMultipleChoice:
         assert status == "incorrect"
 
 
+class TestMultipleSelect:
+    """Test multiple_select answer type validation."""
+
+    def test_multiple_select_exact_set_match(self):
+        question = Question(
+            challenge_id=1,
+            question_text="Pick the correct frameworks",
+            question_type="multi_select",
+            required=True,
+            points=80,
+            order=2,
+            expected_answer="Flask|FastAPI",
+            answer_type="multiple_select",
+            case_sensitive=False,
+            options=["Flask", "Django", "FastAPI", "Express"],
+        )
+
+        points, status = validate_answer(question, "fastapi|flask")
+        assert points == 80
+        assert status == "correct"
+
+    def test_multiple_select_missing_option_is_incorrect(self):
+        question = Question(
+            challenge_id=1,
+            question_text="Pick the correct frameworks",
+            question_type="multi_select",
+            required=True,
+            points=80,
+            order=2,
+            expected_answer="Flask|FastAPI",
+            answer_type="multiple_select",
+            case_sensitive=False,
+            options=["Flask", "Django", "FastAPI", "Express"],
+        )
+
+        points, status = validate_answer(question, "Flask")
+        assert points == 0
+        assert status == "incorrect"
+
+    def test_multiple_select_extra_option_is_incorrect(self):
+        question = Question(
+            challenge_id=1,
+            question_text="Pick the correct frameworks",
+            question_type="multi_select",
+            required=True,
+            points=80,
+            order=2,
+            expected_answer="Flask|FastAPI",
+            answer_type="multiple_select",
+            case_sensitive=False,
+            options=["Flask", "Django", "FastAPI", "Express"],
+        )
+
+        points, status = validate_answer(question, "Flask|FastAPI|Django")
+        assert points == 0
+        assert status == "incorrect"
+
+
 class TestRegexMatching:
     """Test regex answer type validation."""
 

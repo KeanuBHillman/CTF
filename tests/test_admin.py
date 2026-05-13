@@ -35,11 +35,10 @@ class TestAdminTeams:
 
 
 class TestAdminCompletions:
-    def test_list_challenges_includes_flag(self, client, challenge_easy):
+    def test_list_challenges(self, client, challenge_easy):
         r = client.get("/api/admin/challenges")
         assert r.status_code == 200
-        c = next(x for x in r.json() if x["id"] == challenge_easy.id)
-        assert c["flag"] == "CTF{easy}"
+        assert any(c["id"] == challenge_easy.id for c in r.json())
 
     def test_add_completion_to_team(self, client, team_alpha, challenge_easy):
         team, _ = team_alpha
