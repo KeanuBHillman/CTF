@@ -58,7 +58,6 @@ def load_challenges(challenges_dir: Path = CHALLENGES_DIR) -> None:
                 challenge.points = data["points"]
                 challenge.difficulty = data["difficulty"]
                 challenge.description = data["description"]
-                challenge.flag = data["flag"]
                 updated_count += 1
                 print(f"Updated challenge: {data['title']}")
             else:
@@ -67,7 +66,6 @@ def load_challenges(challenges_dir: Path = CHALLENGES_DIR) -> None:
                     points=data["points"],
                     difficulty=data["difficulty"],
                     description=data["description"],
-                    flag=data["flag"],
                 )
                 session.add(challenge)
                 existing_challenges[title_key] = challenge

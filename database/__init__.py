@@ -2,7 +2,6 @@ from .db import CtfDB, get_session
 from .models import (
     AdminCompletionModify,
     Challenge,
-    ChallengeAdmin,
     ChallengeBase,
     ChallengeCompletion,
     ChallengePublic,
@@ -26,7 +25,6 @@ __all__ = [
     "get_session",
     "AdminCompletionModify",
     "Challenge",
-    "ChallengeAdmin",
     "ChallengeBase",
     "ChallengeCompletion",
     "ChallengePublic",

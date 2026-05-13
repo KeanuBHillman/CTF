@@ -14,8 +14,8 @@ from sqlmodel import Session, select
 from database import (
     AdminCompletionModify,
     Challenge,
-    ChallengeAdmin,
     ChallengeCompletion,
+    ChallengePublic,
     Member,
     Team,
     TeamPublic,
@@ -76,9 +76,9 @@ def delete_team(team_id: int, session: Session = Depends(get_session)):
 
 @router.get(
     "/challenges",
-    response_model=list[ChallengeAdmin],
+    response_model=list[ChallengePublic],
     summary="List all challenges (admin)",
-    description="Returns every challenge **including the flag value** — admin use only.",
+    description="Returns every challenge.",
 )
 def admin_list_challenges(session: Session = Depends(get_session)):
     return session.exec(select(Challenge)).all()

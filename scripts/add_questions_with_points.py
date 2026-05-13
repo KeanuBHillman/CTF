@@ -21,6 +21,73 @@ from sqlmodel import select
 
 # add the question entries here .
 CUSTOM_QUESTIONS_BY_CHALLENGE: dict[str, list[dict]] = {
+    "Challenge 1": [
+        {
+            "text": "What visual clue in the image indicates that the country where it was taken is Australia?",
+            "type": "text",
+            "required": True,
+            "points": 50,
+            "expected_answer": "000",
+            "answer_type": "partial", #accepts partial matches, so "000" would be correct for "AUSTRALIA 000"
+            "instructions": "Give a specific visual clue.",
+
+        },
+          {
+            "text": "Using open-source techniques, where can this image be geographically placed?",
+            "type": "text",
+            "required": True,
+            "points": 150,
+            "expected_answer": "Kathleen McArthur",
+            "answer_type": "partial", #accepts partial matches, so "Kathleen McArthur" would be correct for "Kathleen McArthur Conservation Park"
+            "instructions": "Give the specific name of the location.",
+
+        },
+
+          {
+            "text": "The vegetation in the background can be used to support the suspected country or region. Identify the main plant type.",
+            "type": "text",
+            "required": True,
+            "points": 100,
+            "expected_answer": "Paperbark",
+            "answer_type": "partial", #accepts partial matches, so "Paperbark" would be correct for "Paperbark Tree" or "long leaved Paperbark"
+            "instructions": "Give the specific name of the plant. (No scientific names, just common names are fine.)",
+
+        },
+    ],
+    
+    "Challenge 2": [
+        {
+            "text": "What does the number plate in image two give away about the location where the photo was taken?",
+            "type": "text",
+            "required": True,
+            "points": 75,
+            "expected_answer": "Istanbul",
+            "answer_type": "partial", #accepts partial matches, so "Istanbul" would be correct for "Istanbul T34"
+            "instructions": "Give the specific name of the location.",
+
+        },
+          {
+            "text": "Where does the metadata of image three point at ",
+            "type": "coordinate_blocks",
+            "required": True,
+            "points": 100,
+            "expected_answer": "40.94296389,27.31072500 ",
+            "answer_type": "exact", 
+            "instructions": "Enter coordinates as latitude,longitude using decimal degrees upto 6 decimal points (for example: 9.486667,75.364258)",
+
+        },
+
+          {
+            "text": "What word/s were cut out from the chair in image 1",
+            "type": "text",
+            "required": True,
+            "points": 125,
+            "expected_answer": "Istanbul Büyükşehir Belediyesi",
+            "answer_type": "exact", 
+            "instructions": "Use the exact words of the text on the chair, including spaces, punctuation and any special characters. (For example: ü is a special character, so it should be included as is in the answer.)",
+
+        },
+    ],
     "Challenge 5": [
         {
             "text": "Identify the exact date the photo was taken.",

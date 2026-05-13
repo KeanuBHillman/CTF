@@ -97,6 +97,24 @@ def validate_answer(question: Question, submitted_answer: str) -> Tuple[int, str
 
 
         return (question.points, "correct") if match else (0, "incorrect")
+
+    elif question.answer_type == "multiple_select":
+        # Submitted and expected values are pipe-separated selections.
+        expected_values = [option.strip() for option in expected.split("|") if option.strip()]
+        submitted_values = [option.strip() for option in submitted.split("|") if option.strip()]
+
+        if not expected_values or not submitted_values:
+            return 0, "incorrect"
+
+        if question.case_sensitive:
+            expected_set = set(expected_values)
+            submitted_set = set(submitted_values)
+        else:
+            expected_set = {value.lower() for value in expected_values}
+            submitted_set = {value.lower() for value in submitted_values}
+
+        match = submitted_set == expected_set
+        return (question.points, "correct") if match else (0, "incorrect")
     
     elif question.answer_type == "regex":
         # pattern matching

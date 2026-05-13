@@ -10,7 +10,7 @@ from sqlalchemy import JSON, Column, event
 from sqlmodel import Field, Relationship, SQLModel, UniqueConstraint
 
 
-VALID_ANSWER_TYPES = {"exact", "partial", "multiple_choice", "regex", "numeric", "date"}
+VALID_ANSWER_TYPES = {"exact", "partial", "multiple_choice", "multiple_select", "regex", "numeric", "date"}
 
 # question validation
 def validate_question_automarking_config(question: "Question") -> "Question":
@@ -34,16 +34,24 @@ def validate_question_automarking_config(question: "Question") -> "Question":
             raise ValueError("Question options must contain at least one non-empty value.")
         question.options = cleaned_options
 
-    if question.question_type == "single_select":
+    if question.question_type in {"single_select", "multi_select"}:
         if not question.options or len(question.options) < 2:
-            raise ValueError("single_select questions must define at least two options.")
+            raise ValueError("select-style questions must define at least two options.")
 
-    if question.answer_type == "multiple_choice" and question.options and not question.case_sensitive:
-        expected_values = [value.strip().lower() for value in question.expected_answer.split("|")]
-        option_values = [value.lower() for value in question.options]
-        missing_values = [value for value in expected_values if value and value not in option_values]
+    if question.answer_type in {"multiple_choice", "multiple_select"} and question.options:
+        expected_values = [value.strip() for value in question.expected_answer.split("|") if value.strip()]
+        if not expected_values:
+            raise ValueError("Choice-based answers must include at least one expected option.")
+
+        if question.case_sensitive:
+            option_values = question.options
+            missing_values = [value for value in expected_values if value not in option_values]
+        else:
+            option_values = [value.lower() for value in question.options]
+            missing_values = [value.lower() for value in expected_values if value.lower() not in option_values]
+
         if missing_values:
-            raise ValueError("expected_answer values must be present in options for multiple_choice questions.")
+            raise ValueError("expected_answer values must be present in options for choice-based questions.")
 
     return question
 
@@ -77,7 +85,6 @@ class ChallengeBase(SQLModel):
 
 class Challenge(ChallengeBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    flag: Optional[str] = Field(default=None, description="Legacy flag field - no longer used")
 
     teams: list["Team"] = Relationship(
         back_populates="solved_challenges",
@@ -108,13 +115,6 @@ class ChallengePublic(ChallengeBase):
     }
 
 
-class ChallengeAdmin(ChallengeBase):
-    """Full challenge data including the flag — admin use only."""
-
-    id: int
-    flag: Optional[str] = None
-
-
 # ─── Questions ────────────────────────────────────────────────────────────────
 
 
@@ -124,7 +124,7 @@ class Question(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     challenge_id: int = Field(foreign_key="challenge.id", description="Which challenge this question belongs to")
     question_text: str = Field(description="The question to ask")
-    question_type: str = Field(default="text", description="Type: 'text', 'textarea', 'date_blocks', 'time_blocks', 'coordinate_blocks', or 'single_select'")
+    question_type: str = Field(default="text", description="Type: 'text', 'textarea', 'date_blocks', 'time_blocks', 'coordinate_blocks', 'single_select', or 'multi_select'")
     instructions: Optional[str] = Field(default=None, description="Optional formatting instructions shown to users")
     required: bool = Field(default=True, description="Is this question required?")
     points: int = Field(default=10, description="Points awarded for answering this question")
@@ -137,7 +137,7 @@ class Question(SQLModel, table=True):
     
     # Automarking fields
     expected_answer: Optional[str] = Field(default=None, description="Expected answer for auto-marking")
-    answer_type: str = Field(default="exact", description="Auto-marking type: exact, partial, multiple_choice, regex, or numeric")
+    answer_type: str = Field(default="exact", description="Auto-marking type: exact, partial, multiple_choice, multiple_select, regex, numeric, or date")
     case_sensitive: bool = Field(default=False, description="Whether auto-marking should be case-sensitive")
     tolerance: Optional[float] = Field(default=None, description="Numeric tolerance for auto-marking (if applicable)")
     # We can decide whether to include partial credit in the future if we want.
