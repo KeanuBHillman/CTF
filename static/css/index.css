@@ -52,12 +52,22 @@ body {
     letter-spacing: 0.08em;
     transition: all 0.2s ease;
     white-space: nowrap;
-    margin-top: 20px;
 }
 
 .back-link:hover {
     background: var(--primary-color);
     color: #0d0d0d;
+}
+
+.page-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Header styles */
@@ -77,7 +87,7 @@ h3 {
     align-items: flex-start;
     position: absolute;
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - 88px);
     top: 0;
     left: 0;
     background: var(--gradient-thing);

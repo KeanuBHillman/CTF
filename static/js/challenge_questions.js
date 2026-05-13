@@ -1,6 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-  // setting up input handling for date, coordinate, and time blocks with strict validation on format and values
+  /* =========================================================
+   * FORMAT VALIDATORS
+   * Regex patterns and helper functions that validate date,
+   * time, and coordinate values before submission.
+   * ========================================================= */
+
   const DATE_FORMAT_REGEX = /^\d{4} - \d{2} - \d{2}$/;
   const COORD_FORMAT_REGEX = /^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/;
   const TIME_FORMAT_REGEX = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -36,6 +41,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function isValidTime(value) {
     return TIME_FORMAT_REGEX.test(value);
   }
+
+  /* =========================================================
+   * INPUT SETUP
+   * Attaches event listeners to compound block inputs
+   * (date, time, coordinate) for auto-advance and backspace
+   * navigation between fields.
+   * ========================================================= */
 
   function setupDateBlockInputs() {
     const blocks = document.querySelectorAll("[data-date-block='true']");
@@ -111,6 +123,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+
+  /* =========================================================
+   * DATA LOADING & QUESTION RENDERER
+   * Fetches challenge metadata and questions from the API,
+   * then builds the question form HTML for each question type.
+   * ========================================================= */
 
   // Get challenge ID from URL
   const pathParts = window.location.pathname.split('/');
@@ -208,6 +226,24 @@ document.addEventListener("DOMContentLoaded", () => {
             ${optionTags}
           </select>
         `;
+      } else if (q.question_type === 'multi_select' || (q.answer_type === 'multiple_select' && Array.isArray(q.options) && q.options.length > 0)) {
+        const optionTags = q.options
+          .map((option, optionIndex) => {
+            const checkboxId = `question-${q.id}-option-${optionIndex}`;
+            return `
+              <label class="multi-select-option-label" for="${checkboxId}">
+                <input type="checkbox" id="${checkboxId}" value="${option}" />
+                <span>${option}</span>
+              </label>
+            `;
+          })
+          .join('');
+
+        inputHtml = `
+          <div id="question-${q.id}" class="multi-select-group" data-multi-select="true">
+            ${optionTags}
+          </div>
+        `;
       } else if (q.question_type === 'textarea') {
         inputHtml = `<textarea id="question-${q.id}" rows="4" placeholder="Your answer..."></textarea>`;
       } else if (q.question_type === 'date_blocks') {
@@ -255,6 +291,13 @@ document.addEventListener("DOMContentLoaded", () => {
     setupTimeBlockInputs();
   }
 
+  /* =========================================================
+   * SUBMIT HANDLER & RESPONSE DISPLAY
+   * Collects answers from all question inputs, validates
+   * required fields, POSTs to the API, and renders the
+   * points breakdown response card.
+   * ========================================================= */
+
   // Submit answers
   submitButton.addEventListener("click", () => {
     const answers = {};
@@ -264,9 +307,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Collect answers
     questions.forEach(q => {
       let input = document.getElementById(`question-${q.id}`);
-      let value = input ? input.value.trim() : "";
+      let value = input && typeof input.value === "string" ? input.value.trim() : "";
 
-      if (q.question_type === "date_blocks") {
+      if (q.question_type === "multi_select" || q.answer_type === "multiple_select") {
+        if (input) {
+          const selectedValues = Array.from(input.querySelectorAll("input[type='checkbox']:checked"))
+            .map((option) => option.value.trim())
+            .filter(Boolean);
+          value = selectedValues.join("|");
+        }
+      } else if (q.question_type === "date_blocks") {
         const yearInput = document.getElementById(`question-${q.id}-year`);
         const monthInput = document.getElementById(`question-${q.id}-month`);
         const dayInput = document.getElementById(`question-${q.id}-day`);
@@ -361,6 +411,13 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(`question-${q.id}-year`).value = "";
             document.getElementById(`question-${q.id}-month`).value = "";
             document.getElementById(`question-${q.id}-day`).value = "";
+          } else if (q.question_type === "multi_select" || q.answer_type === "multiple_select") {
+            const checkboxGroup = document.getElementById(`question-${q.id}`);
+            if (checkboxGroup) {
+              checkboxGroup.querySelectorAll("input[type='checkbox']").forEach((checkbox) => {
+                checkbox.checked = false;
+              });
+            }
           } else if (q.question_type === "coordinate_blocks") {
             document.getElementById(`question-${q.id}-lat`).value = "";
             document.getElementById(`question-${q.id}-lng`).value = "";
